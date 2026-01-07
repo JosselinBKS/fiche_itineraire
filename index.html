@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche projet itinéraire – V1.8</title>
+<link rel="icon" href="data:,">
+<style>
+body{font-family:system-ui;background:#f9fafb;margin:0;color:#111827}
+header{padding:12px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0}
+main{padding:12px 12px 92px;max-width:1000px;margin:auto}
+details{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin:10px 0}
+summary{padding:12px;font-weight:800;cursor:pointer}
+.sec{padding:12px}
+label{display:block;margin-top:8px;font-size:.9rem}
+input,select,textarea,button{width:100%;padding:10px;border-radius:10px;border:1px solid #e5e7eb}
+textarea{min-height:70px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.item{background:#f3f4f6;border:1px solid #e5e7eb;border-radius:10px;margin:8px 0}
+.item summary{background:#eef2f7}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:6px}
+.photo{position:relative}
+.photo img{width:100%;border-radius:6px}
+.photo button{position:absolute;top:4px;right:4px;background:#b91c1c;color:#fff;border:none;border-radius:999px;width:26px;height:26px}
+.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;padding:8px}
+.footer .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:720px){.row2,.row3,.footer .row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><strong>Fiche projet itinéraire – V1.8 (consolidée)</strong></header>
+
+<main>
+<details open><summary>A. Identification</summary>
+<div class="sec">
+<label>Nom provisoire / code de l’itinéraire</label><input id="p_name">
+<div class="row2">
+<div><label>Type de projet</label>
+<select id="p_type"><option>Création</option><option>Requalification</option><option>Étude</option></select></div>
+<div><label>Commune de départ</label><input id="p_commune"></div>
+</div>
+<div class="row2">
+<div><label>Date</label><input id="p_date" type="date"></div>
+<div><label>Participants</label>
+<input id="p_part1" placeholder="Technique">
+<input id="p_part2" placeholder="Développement"></div>
+</div>
+<label>Commentaire</label><textarea id="p_com"></textarea>
+</div></details>
+
+<details><summary>B. Signalétique</summary>
+<div class="sec">
+<button onclick="addSig()">+ Ajouter une signalétique</button>
+<div id="sig"></div>
+</div></details>
+
+<details><summary>C. Balisage</summary>
+<div class="sec">
+<label>Types rencontrés</label>
+<select id="bal_types" multiple><option>PR</option><option>GR</option><option>GRP</option><option>Local</option><option>Absent</option></select>
+<label>Action globale</label>
+<select id="bal_action"><option>Maintien</option><option>Création</option><option>Reprise partielle</option><option>Reprise complète</option></select>
+<label>Commentaire</label><textarea id="bal_com"></textarea>
+<hr>
+<button onclick="addBal()">+ Section de balisage</button>
+<div id="bal"></div>
+</div></details>
+
+<details><summary>D. Travaux de réouverture</summary>
+<div class="sec">
+<button onclick="addTrav()">+ Travail</button>
+<div id="trav"></div>
+</div></details>
+
+<details><summary>E. Entretien annuel</summary>
+<div class="sec">
+<label>Jour/homme / an</label><input id="ent_jh" type="number" step="0.5">
+<label>Nature dominante</label>
+<select id="ent_nat" multiple>
+<option>Débroussaillage</option><option>Élagage</option><option>Balisage</option>
+<option>Ouvrages</option><option>Drainage</option><option>Surveillance / chablis</option>
+</select>
+<label>Commentaire</label><textarea id="ent_com"></textarea>
+</div></details>
+
+<details><summary>F. Points sensibles</summary>
+<div class="sec">
+<button onclick="addSens()">+ Point sensible</button>
+<div id="sens"></div>
+</div></details>
+
+<details><summary>G. Caractéristiques itinéraire (bureau)</summary>
+<div class="sec">
+<div class="row3">
+<div><label>Longueur (km)</label><input id="it_len" type="number" step="0.1"></div>
+<div><label>Dénivelé +</label><input id="it_dp" type="number"></div>
+<div><label>Dénivelé -</label><input id="it_dm" type="number"></div>
+</div>
+<div class="row3">
+<div><label>Temps estimé</label><input id="it_time"></div>
+<div><label>Public cible</label>
+<select id="it_pub"><option>Familial</option><option>Grand public</option><option>Confirmé</option></select></div>
+<div><label>Saisonnalité</label>
+<select id="it_season"><option>Toute l’année</option><option>Hors neige</option></select></div>
+</div>
+<label>Sens conseillé</label><input id="it_dir">
+</div></details>
+
+<details><summary>H. Enjeux & contraintes (bureau)</summary>
+<div class="sec">
+<label>Enjeux</label>
+<select id="enjeux" multiple>
+<option>Risque de chutes de blocs</option><option>Crues</option>
+<option>Érosion</option><option>Pastoralisme</option><option>Chasse</option><option>Autres</option>
+</select>
+<label>Commentaire</label><textarea id="enjeux_com"></textarea>
+</div></details>
+
+<details><summary>I. Plan d’actions & phasage (bureau)</summary>
+<div class="sec">
+<label>Actions prioritaires</label><textarea id="plan"></textarea>
+<label>Phasage</label><textarea id="phasage"></textarea>
+</div></details>
+
+<details><summary>K. Décision & arbitrage (bureau)</summary>
+<div class="sec">
+<div class="row3">
+<div><label>Intérêt</label>
+<select id="dec_int"><option>⭐</option><option>⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐⭐⭐</option></select></div>
+<div><label>Décision</label>
+<select id="dec_go"><option>GO</option><option>GO sous conditions</option><option>NON</option></select></div>
+<div><label>Mise en tourisme</label>
+<select id="tour"><option>Faible</option><option>Moyen</option><option>Fort</option></select></div>
+</div>
+<label>Argumentaire</label><textarea id="dec_com"></textarea>
+</div></details>
+</main>
+
+<div class="footer">
+<div class="row">
+<button onclick="save()">💾 Sauvegarder</button>
+<button onclick="exportZip()">📦 Export</button>
+<button onclick="resetAll()">🗑️ Reset</button>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+let S={sig:[],bal:[],trav:[],sens:[]};
+const KEY='V18';
+
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function resetAll(){if(confirm('Supprimer ?')){localStorage.removeItem(KEY);location.reload();}}
+
+function addSig(){S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],com:''});render();}
+function addBal(){S.bal.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],com:''});render();}
+function addTrav(){S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],com:''});render();}
+function addSens(){S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],com:''});render();}
+
+function gpsFill(cb){
+ if(!navigator.geolocation){alert('GPS indisponible');return;}
+ navigator.geolocation.getCurrentPosition(p=>cb(p.coords.latitude,p.coords.longitude),
+ ()=>alert('GPS refusé ou indisponible'));
+}
+
+function onPhotos(e,arr,i){
+ [...e.target.files].forEach(f=>{
+  const r=new FileReader();
+  r.onload=ev=>{arr[i].photos.push(ev.target.result);render();};
+  r.readAsDataURL(f);
+ });
+}
+
+function render(){
+ sig.innerHTML=''; S.sig.forEach((o,i)=>{
+  sig.innerHTML+=`<div class="item"><details open><summary>Signalétique ${i+1}</summary>
+  <div class="sec">
+  <label>Type</label><select onchange="S.sig[${i}].type=this.value">
+  <option>Directionnelle</option><option>Départ</option><option>Information</option></select>
+  <label>Style</label><select onchange="S.sig[${i}].style=this.value">
+  <option>Mat</option><option>Jalon signalétique</option><option>Jalon balisage</option><option>Jalon pastoral</option><option>Totem</option></select>
+  <label>Action</label><select onchange="S.sig[${i}].action=this.value">
+  <option>Maintien</option><option>Création</option><option>Reprise</option><option>Suppression</option></select>
+  <button onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo;})">GPS</button>
+  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.sig,${i})">
+  <textarea oninput="S.sig[${i}].com=this.value"></textarea>
+  </div></details></div>`;
+ });
+ bal.innerHTML=''; S.bal.forEach((o,i)=>{
+  bal.innerHTML+=`<div class="item"><details open><summary>Balisage ${i+1}</summary>
+  <div class="sec">
+  <label>Action</label><select onchange="S.bal[${i}].action=this.value">
+  <option>Maintien</option><option>Création</option><option>Reprise partielle</option><option>Reprise complète</option></select>
+  <label>Linéaire (m)</label><input type="number" oninput="S.bal[${i}].linear=this.value">
+  <label>JH</label><input type="number" step="0.5" oninput="S.bal[${i}].jh=this.value">
+  <button onclick="gpsFill((la,lo)=>{S.bal[${i}].lat=la;S.bal[${i}].lon=lo;})">GPS</button>
+  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.bal,${i})">
+  <textarea oninput="S.bal[${i}].com=this.value"></textarea>
+  </div></details></div>`;
+ });
+ trav.innerHTML=''; S.trav.forEach((o,i)=>{
+  trav.innerHTML+=`<div class="item"><details open><summary>Travail ${i+1}</summary>
+  <div class="sec">
+  <label>Type</label><select onchange="S.trav[${i}].type=this.value">
+  <option>Débroussaillage</option><option>Élagage</option><option>Chablis</option>
+  <option>Reprofilage</option><option>Reprise d’assise</option><option>Drainage</option><option>Purge</option><option>Autres</option></select>
+  <label>Linéaire (m)</label><input type="number" oninput="S.trav[${i}].linear=this.value">
+  <label>JH</label><input type="number" step="0.5" oninput="S.trav[${i}].jh=this.value">
+  <button onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo;})">GPS</button>
+  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.trav,${i})">
+  <textarea oninput="S.trav[${i}].com=this.value"></textarea>
+  </div></details></div>`;
+ });
+ sens.innerHTML=''; S.sens.forEach((o,i)=>{
+  sens.innerHTML+=`<div class="item"><details open><summary>Point sensible ${i+1}</summary>
+  <div class="sec">
+  <label>Catégorie</label><select onchange="S.sens[${i}].cat=this.value">
+  <option>Cohabitation</option><option>Obstacle</option><option>État du sol</option><option>Hydraulique</option><option>Ouvrage</option><option>Autres</option></select>
+  <button onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo;})">GPS</button>
+  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.sens,${i})">
+  <textarea oninput="S.sens[${i}].com=this.value"></textarea>
+  </div></details></div>`;
+ });
+}
+
+function exportZip(){
+ const zip=new JSZip();
+ zip.file('data.json',JSON.stringify(S,null,2));
+ zip.generateAsync({type:'blob'}).then(b=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='V1_8.zip';a.click();
+ });
+}
+
+render();
+</script>
+</body></html>
