@@ -3,235 +3,812 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – V1.8</title>
-<link rel="icon" href="data:,">
+<title>PWA – Fiche projet itinéraire (V1.7 consolidée)</title>
 <style>
-body{font-family:system-ui;background:#f9fafb;margin:0;color:#111827}
-header{padding:12px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0}
-main{padding:12px 12px 92px;max-width:1000px;margin:auto}
-details{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin:10px 0}
-summary{padding:12px;font-weight:800;cursor:pointer}
+:root{
+  --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
+  --sec:#ffffff;--item:#f3f4f6;--item2:#eef2f7;
+  --accent:#0f766e;--danger:#b91c1c;--muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);padding:12px}
+h1{font-size:1.05rem;margin:0}
+main{padding:12px 12px 92px;max-width:980px;margin:auto}
+details.section{background:var(--sec);border:1px solid var(--line);border-radius:12px;margin:10px 0}
+details.section>summary{padding:12px;font-weight:800;cursor:pointer;list-style:none}
+details.section>summary::-webkit-details-marker{display:none}
 .sec{padding:12px}
-label{display:block;margin-top:8px;font-size:.9rem}
-input,select,textarea,button{width:100%;padding:10px;border-radius:10px;border:1px solid #e5e7eb}
-textarea{min-height:70px}
+label{display:block;font-size:.9rem;color:#374151;margin-top:8px}
+input,select,textarea,button{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff}
+textarea{min-height:72px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.item{background:#f3f4f6;border:1px solid #e5e7eb;border-radius:10px;margin:8px 0}
-.item summary{background:#eef2f7}
+.small{font-size:.82rem;color:var(--muted)}
+.badge{font-size:.72rem;color:#fff;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.badge.terrain{background:#065f46}
+.badge.bureau{background:#1e40af}
+.item{background:var(--item);border:1px solid var(--line);border-radius:10px;margin:10px 0}
+.item details{border:none}
+.item summary{padding:10px;font-weight:700;background:var(--item2);border-bottom:1px solid var(--line);cursor:pointer;list-style:none}
+.item summary::-webkit-details-marker{display:none}
+.item .inner{padding:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+button.ghost{background:#fff}
+hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:6px}
 .photo{position:relative}
 .photo img{width:100%;border-radius:6px}
-.photo button{position:absolute;top:4px;right:4px;background:#b91c1c;color:#fff;border:none;border-radius:999px;width:26px;height:26px}
-.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;padding:8px}
+.photo button{position:absolute;top:4px;right:4px;background:var(--danger);color:#fff;border:none;border-radius:999px;width:26px;height:26px}
+.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px}
 .footer .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-@media(max-width:720px){.row2,.row3,.footer .row{grid-template-columns:1fr}}
+@media (max-width:720px){
+  .row2,.row3{grid-template-columns:1fr}
+  .footer .row{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
-<header><strong>Fiche projet itinéraire – V1.8 (consolidée)</strong></header>
+<header><h1>Fiche projet itinéraire – V1.8 (strict)</h1></header>
 
 <main>
-<details open><summary>A. Identification</summary>
-<div class="sec">
-<label>Nom provisoire / code de l’itinéraire</label><input id="p_name">
-<div class="row2">
-<div><label>Type de projet</label>
-<select id="p_type"><option>Création</option><option>Requalification</option><option>Étude</option></select></div>
-<div><label>Commune de départ</label><input id="p_commune"></div>
-</div>
-<div class="row2">
-<div><label>Date</label><input id="p_date" type="date"></div>
-<div><label>Participants</label>
-<input id="p_part1" placeholder="Technique">
-<input id="p_part2" placeholder="Développement"></div>
-</div>
-<label>Commentaire</label><textarea id="p_com"></textarea>
-</div></details>
+<!-- A -->
+<details class="section" open>
+  <summary>A. Identification <span class="badge terrain">terrain</span></summary>
+  <div class="sec">
+    <label>Nom provisoire / code de l’itinéraire</label>
+    <input id="p_name" placeholder="Ex : BOUCLE_SAINT_BÉAT_2026">
+    <div class="row2">
+      <div>
+        <label>Type de projet</label>
+        <select id="p_type">
+          <option>Création</option><option>Requalification</option><option>Étude</option>
+        </select>
+      </div>
+      <div>
+        <label>Commune de départ</label>
+        <input id="p_commune">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Date d’exploration</label>
+        <input id="p_date" type="date">
+      </div>
+      <div>
+        <label>Participants à la reconnaissance</label>
+        <input id="p_part1" placeholder="Nom / fonction (technique)">
+        <input id="p_part2" placeholder="Nom / fonction (développement)">
+      </div>
+    </div>
+    <label>Commentaire général</label>
+    <textarea id="p_com"></textarea>
+  </div>
+</details>
 
-<details><summary>B. Signalétique</summary>
-<div class="sec">
-<button onclick="addSig()">+ Ajouter une signalétique</button>
-<div id="sig"></div>
-</div></details>
+<!-- B -->
+<details class="section">
+  <summary>B. Signalétique <span class="badge terrain">terrain</span></summary>
+  <div class="sec">
+    <button class="ghost" onclick="addSig()">➕ Ajouter une signalétique</button>
+    <div id="sig_list"></div>
+    <div class="small">Signalétique = mobilier implanté (point GPS). Le GPS est recommandé mais l’objet existe même si non relevé.</div>
+  </div>
+</details>
 
-<details><summary>C. Balisage</summary>
-<div class="sec">
-<label>Types rencontrés</label>
-<select id="bal_types" multiple><option>PR</option><option>GR</option><option>GRP</option><option>Local</option><option>Absent</option></select>
-<label>Action globale</label>
-<select id="bal_action"><option>Maintien</option><option>Création</option><option>Reprise partielle</option><option>Reprise complète</option></select>
-<label>Commentaire</label><textarea id="bal_com"></textarea>
-<hr>
-<button onclick="addBal()">+ Section de balisage</button>
-<div id="bal"></div>
-</div></details>
+<!-- C -->
+<details class="section">
+  <summary>C. Balisage <span class="badge terrain">terrain</span></summary>
+  <div class="sec">
+    <label>Types de balisage rencontrés (multi-choix)</label>
+    <select id="bal_types" multiple>
+      <option>PR</option><option>GR</option><option>GRP</option><option>Local</option><option>Absent</option>
+    </select>
 
-<details><summary>D. Travaux de réouverture</summary>
-<div class="sec">
-<button onclick="addTrav()">+ Travail</button>
-<div id="trav"></div>
-</div></details>
+    <label>Action globale</label>
+    <select id="bal_action_global">
+      <option>Maintien</option>
+      <option>Création</option>
+      <option>Reprise partielle</option>
+      <option>Reprise complète</option>
+    </select>
 
-<details><summary>E. Entretien annuel</summary>
-<div class="sec">
-<label>Jour/homme / an</label><input id="ent_jh" type="number" step="0.5">
-<label>Nature dominante</label>
-<select id="ent_nat" multiple>
-<option>Débroussaillage</option><option>Élagage</option><option>Balisage</option>
-<option>Ouvrages</option><option>Drainage</option><option>Surveillance / chablis</option>
-</select>
-<label>Commentaire</label><textarea id="ent_com"></textarea>
-</div></details>
+    <label>Commentaire global</label>
+    <textarea id="bal_com_global"></textarea>
 
-<details><summary>F. Points sensibles</summary>
-<div class="sec">
-<button onclick="addSens()">+ Point sensible</button>
-<div id="sens"></div>
-</div></details>
+    <hr>
+    <button class="ghost" onclick="addBalSec()">➕ Ajouter une section de balisage (point + linéaire)</button>
+    <div id="bal_list"></div>
+  </div>
+</details>
 
-<details><summary>G. Caractéristiques itinéraire (bureau)</summary>
-<div class="sec">
-<div class="row3">
-<div><label>Longueur (km)</label><input id="it_len" type="number" step="0.1"></div>
-<div><label>Dénivelé +</label><input id="it_dp" type="number"></div>
-<div><label>Dénivelé -</label><input id="it_dm" type="number"></div>
-</div>
-<div class="row3">
-<div><label>Temps estimé</label><input id="it_time"></div>
-<div><label>Public cible</label>
-<select id="it_pub"><option>Familial</option><option>Grand public</option><option>Confirmé</option></select></div>
-<div><label>Saisonnalité</label>
-<select id="it_season"><option>Toute l’année</option><option>Hors neige</option></select></div>
-</div>
-<label>Sens conseillé</label><input id="it_dir">
-</div></details>
+<!-- D -->
+<details class="section">
+  <summary>D. Travaux de réouverture <span class="badge terrain">terrain</span></summary>
+  <div class="sec">
+    <button class="ghost" onclick="addTrav()">➕ Ajouter un travail</button>
+    <div id="trav_list"></div>
+    <div class="small">Travaux = remise à niveau initiale. Le linéaire est approximatif ; le point GPS marque le début.</div>
+  </div>
+</details>
 
-<details><summary>H. Enjeux & contraintes (bureau)</summary>
-<div class="sec">
-<label>Enjeux</label>
-<select id="enjeux" multiple>
-<option>Risque de chutes de blocs</option><option>Crues</option>
-<option>Érosion</option><option>Pastoralisme</option><option>Chasse</option><option>Autres</option>
-</select>
-<label>Commentaire</label><textarea id="enjeux_com"></textarea>
-</div></details>
+<!-- E -->
+<details class="section">
+  <summary>E. Entretien annuel estimé <span class="badge terrain">terrain</span></summary>
+  <div class="sec">
+    <div class="row2">
+      <div>
+        <label>Volume annuel (Jour/homme / an)</label>
+        <input id="ent_jh" type="number" min="0" step="0.5">
+      </div>
+      <div>
+        <label>Nature dominante (multi)</label>
+        <select id="ent_nat" multiple>
+          <option>Débroussaillage</option>
+          <option>Élagage</option>
+          <option>Balisage</option>
+          <option>Ouvrages</option>
+          <option>Drainage</option>
+          <option>Surveillance / chablis</option>
+        </select>
+      </div>
+    </div>
+    <label>Commentaire</label>
+    <textarea id="ent_com"></textarea>
+  </div>
+</details>
 
-<details><summary>I. Plan d’actions & phasage (bureau)</summary>
-<div class="sec">
-<label>Actions prioritaires</label><textarea id="plan"></textarea>
-<label>Phasage</label><textarea id="phasage"></textarea>
-</div></details>
+<!-- F -->
+<details class="section">
+  <summary>F. Points sensibles / problématiques de tronçons <span class="badge terrain">terrain</span></summary>
+  <div class="sec">
+    <button class="ghost" onclick="addSens()">➕ Ajouter un point sensible</button>
+    <div id="sens_list"></div>
+  </div>
+</details>
 
-<details><summary>K. Décision & arbitrage (bureau)</summary>
-<div class="sec">
-<div class="row3">
-<div><label>Intérêt</label>
-<select id="dec_int"><option>⭐</option><option>⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐⭐⭐</option></select></div>
-<div><label>Décision</label>
-<select id="dec_go"><option>GO</option><option>GO sous conditions</option><option>NON</option></select></div>
-<div><label>Mise en tourisme</label>
-<select id="tour"><option>Faible</option><option>Moyen</option><option>Fort</option></select></div>
-</div>
-<label>Argumentaire</label><textarea id="dec_com"></textarea>
-</div></details>
+<!-- K -->
+<details class="section">
+  <summary>K. Décision & arbitrage <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <div class="row3">
+      <div>
+        <label>Niveau d’intérêt global</label>
+        <select id="dec_interest">
+          <option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option>
+        </select>
+      </div>
+      <div>
+        <label>Décision</label>
+        <select id="dec_go">
+          <option>GO</option><option>GO sous conditions</option><option>NON</option>
+        </select>
+      </div>
+      <div>
+        <label>Potentiel de mise en tourisme</label>
+        <select id="tour_pot">
+          <option>Faible</option><option>Moyen</option><option>Fort</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Argumentaire / commentaires</label>
+    <textarea id="dec_com"></textarea>
+
+    <div class="row2">
+      <div>
+        <label>Estimation coût initial (optionnel – €)</label>
+        <input id="cost_init_manual" type="number" min="0" step="100">
+        <div class="small">Auto-calcul indicatif (si tu as renseigné des coûts sur les objets) : <span id="cost_init_auto">0</span> €</div>
+      </div>
+      <div>
+        <label>Estimation entretien annuel (JH/an)</label>
+        <input id="ent_jh_copy" type="number" min="0" step="0.5" readonly>
+        <div class="small">Copié depuis la section Entretien annuel.</div>
+      </div>
+    </div>
+  </div>
+</details>
+
 </main>
 
 <div class="footer">
-<div class="row">
-<button onclick="save()">💾 Sauvegarder</button>
-<button onclick="exportZip()">📦 Export</button>
-<button onclick="resetAll()">🗑️ Reset</button>
-</div></div>
+  <div class="row">
+    <button class="ghost" onclick="saveAll()">💾 Sauvegarder</button>
+    <button class="primary" onclick="exportZIP()">📦 Export ZIP (GPX + HTML + photos)</button>
+    <button class="danger" onclick="resetAll()">🗑️ Réinitialiser</button>
+  </div>
+</div>
 
+<!-- JSZip via CDN (sera bundlé ensuite si besoin offline) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <script>
-let S={sig:[],bal:[],trav:[],sens:[]};
-const KEY='V18';
+// -------------------- STATE --------------------
+let S = {
+  meta:{version:"1.8"},
+  project:{},
+  sig:[],
+  bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
+  trav:[],
+  ent:{jh:"", nat:[], com:""},
+  sens:[],
+  bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:""}
+};
 
-function save(){localStorage.setItem(KEY,JSON.stringify(S));}
-function resetAll(){if(confirm('Supprimer ?')){localStorage.removeItem(KEY);location.reload();}}
+const KEY="pwa_itin_v1_8";
 
-function addSig(){S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],com:''});render();}
-function addBal(){S.bal.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],com:''});render();}
-function addTrav(){S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],com:''});render();}
-function addSens(){S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],com:''});render();}
+// -------------------- HELPERS --------------------
+function selMulti(el){ return [...el.options].filter(o=>o.selected).map(o=>o.value); }
 
+function setMulti(el, values){
+  const set=new Set(values||[]);
+  [...el.options].forEach(o=>o.selected=set.has(o.value));
+}
+
+function nowStamp(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes());
+}
+
+function updateDerived(){
+  // copy entretien JH to bureau
+  ent_jh_copy.value = ent_jh.value || "";
+  // auto cost = sum of costs from signalétique + travaux + points sensibles + balisage sections (if filled)
+  const sum = (arr, field) => arr.reduce((a,o)=>a+(Number(o[field]||0)||0),0);
+  const auto = sum(S.trav,'cost');
+  document.getElementById('cost_init_auto').innerText = Math.round(auto);
+}
+
+// GPS: works only on http/https origin; object exists even without it
 function gpsFill(cb){
- if(!navigator.geolocation){alert('GPS indisponible');return;}
- navigator.geolocation.getCurrentPosition(p=>cb(p.coords.latitude,p.coords.longitude),
- ()=>alert('GPS refusé ou indisponible'));
+  if(!navigator.geolocation){ alert("GPS indisponible sur ce navigateur."); return; }
+  navigator.geolocation.getCurrentPosition(
+    p=>cb(p.coords.latitude,p.coords.longitude),
+    _=>alert("GPS non disponible (autorisation/refus ou origine non sécurisée).")
+  );
 }
 
-function onPhotos(e,arr,i){
- [...e.target.files].forEach(f=>{
+function resizePhoto(file, cb){
+  const img=new Image();
   const r=new FileReader();
-  r.onload=ev=>{arr[i].photos.push(ev.target.result);render();};
-  r.readAsDataURL(f);
- });
+  r.onload=e=>img.src=e.target.result;
+  img.onload=()=>{
+    const max=1600;
+    let w=img.width,h=img.height;
+    if(w>h && w>max){ h = h*max/w; w=max; }
+    if(h>=w && h>max){ w = w*max/h; h=max; }
+    const c=document.createElement('canvas');
+    c.width=Math.round(w); c.height=Math.round(h);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    cb(c.toDataURL('image/jpeg',0.7));
+  };
+  r.readAsDataURL(file);
 }
 
-function render(){
- sig.innerHTML=''; S.sig.forEach((o,i)=>{
-  sig.innerHTML+=`<div class="item"><details open><summary>Signalétique ${i+1}</summary>
-  <div class="sec">
-  <label>Type</label><select onchange="S.sig[${i}].type=this.value">
-  <option>Directionnelle</option><option>Départ</option><option>Information</option></select>
-  <label>Style</label><select onchange="S.sig[${i}].style=this.value">
-  <option>Mat</option><option>Jalon signalétique</option><option>Jalon balisage</option><option>Jalon pastoral</option><option>Totem</option></select>
-  <label>Action</label><select onchange="S.sig[${i}].action=this.value">
-  <option>Maintien</option><option>Création</option><option>Reprise</option><option>Suppression</option></select>
-  <button onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo;})">GPS</button>
-  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.sig,${i})">
-  <textarea oninput="S.sig[${i}].com=this.value"></textarea>
-  </div></details></div>`;
- });
- bal.innerHTML=''; S.bal.forEach((o,i)=>{
-  bal.innerHTML+=`<div class="item"><details open><summary>Balisage ${i+1}</summary>
-  <div class="sec">
-  <label>Action</label><select onchange="S.bal[${i}].action=this.value">
-  <option>Maintien</option><option>Création</option><option>Reprise partielle</option><option>Reprise complète</option></select>
-  <label>Linéaire (m)</label><input type="number" oninput="S.bal[${i}].linear=this.value">
-  <label>JH</label><input type="number" step="0.5" oninput="S.bal[${i}].jh=this.value">
-  <button onclick="gpsFill((la,lo)=>{S.bal[${i}].lat=la;S.bal[${i}].lon=lo;})">GPS</button>
-  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.bal,${i})">
-  <textarea oninput="S.bal[${i}].com=this.value"></textarea>
-  </div></details></div>`;
- });
- trav.innerHTML=''; S.trav.forEach((o,i)=>{
-  trav.innerHTML+=`<div class="item"><details open><summary>Travail ${i+1}</summary>
-  <div class="sec">
-  <label>Type</label><select onchange="S.trav[${i}].type=this.value">
-  <option>Débroussaillage</option><option>Élagage</option><option>Chablis</option>
-  <option>Reprofilage</option><option>Reprise d’assise</option><option>Drainage</option><option>Purge</option><option>Autres</option></select>
-  <label>Linéaire (m)</label><input type="number" oninput="S.trav[${i}].linear=this.value">
-  <label>JH</label><input type="number" step="0.5" oninput="S.trav[${i}].jh=this.value">
-  <button onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo;})">GPS</button>
-  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.trav,${i})">
-  <textarea oninput="S.trav[${i}].com=this.value"></textarea>
-  </div></details></div>`;
- });
- sens.innerHTML=''; S.sens.forEach((o,i)=>{
-  sens.innerHTML+=`<div class="item"><details open><summary>Point sensible ${i+1}</summary>
-  <div class="sec">
-  <label>Catégorie</label><select onchange="S.sens[${i}].cat=this.value">
-  <option>Cohabitation</option><option>Obstacle</option><option>État du sol</option><option>Hydraulique</option><option>Ouvrage</option><option>Autres</option></select>
-  <button onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo;})">GPS</button>
-  <input type="file" multiple accept="image/*" onchange="onPhotos(event,S.sens,${i})">
-  <textarea oninput="S.sens[${i}].com=this.value"></textarea>
-  </div></details></div>`;
- });
+// -------------------- RENDER ITEMS --------------------
+function addPhotoGrid(containerId, listRef, idx){
+  const cont=document.getElementById(containerId);
+  cont.innerHTML="";
+  (listRef[idx].photos||[]).forEach((data,pi)=>{
+    const d=document.createElement('div');
+    d.className="photo";
+    d.innerHTML = `<img src="${data}"><button type="button" onclick="delPhoto('${containerId}', ${idx}, ${pi})">×</button>`;
+    cont.appendChild(d);
+  });
 }
 
-function exportZip(){
- const zip=new JSZip();
- zip.file('data.json',JSON.stringify(S,null,2));
- zip.generateAsync({type:'blob'}).then(b=>{
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(b);a.download='V1_8.zip';a.click();
- });
+function delPhoto(containerId, idx, pi){
+  const [kind] = containerId.split('_'); // sigPhotos_0 -> "sigPhotos"
+  // Map containerId prefix to state array
+  let arr=null;
+  if(containerId.startsWith('sigPhotos_')) arr=S.sig;
+  else if(containerId.startsWith('balPhotos_')) arr=S.bal.sections;
+  else if(containerId.startsWith('travPhotos_')) arr=S.trav;
+  else if(containerId.startsWith('sensPhotos_')) arr=S.sens;
+  if(!arr) return;
+  arr[idx].photos.splice(pi,1);
+  saveAll(false);
+  renderAllLists();
 }
 
-render();
+function reindexSummaries(listEl, label){
+  [...listEl.children].forEach((itemEl, i)=>{
+    const sum=itemEl.querySelector('summary');
+    if(sum) sum.textContent = `${label} n°${i+1}` + (sum.dataset.sub||"");
+  });
+}
+
+function renderAllLists(){
+  // SIGNALÉTIQUE
+  sig_list.innerHTML="";
+  S.sig.forEach((o,i)=>{
+    const wrap=document.createElement('div'); wrap.className="item";
+    wrap.innerHTML = `
+      <details open>
+        <summary data-sub="">Signalétique n°${i+1}</summary>
+        <div class="inner">
+          <div class="row2">
+            <div>
+              <label>Type de signalétique</label>
+              <select id="sig_type_${i}" onchange="onSigType(${i}, this.value)">
+                <option ${o.type==='Directionnelle'?'selected':''}>Directionnelle</option>
+                <option ${o.type==='Départ'?'selected':''}>Départ</option>
+                <option ${o.type==='Information'?'selected':''}>Information</option>
+              </select>
+            </div>
+            <div>
+              <label>Style</label>
+              <select id="sig_style_${i}" onchange="S.sig[${i}].style=this.value"></select>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label>Action</label>
+              <select onchange="S.sig[${i}].action=this.value">
+                <option ${o.action==='Maintien'?'selected':''}>Maintien</option>
+                <option ${o.action==='Création'?'selected':''}>Création</option>
+                <option ${o.action==='Reprise'?'selected':''}>Reprise</option>
+                <option ${o.action==='Suppression'?'selected':''}>Suppression</option>
+              </select>
+            </div>
+            <div>
+              </div>
+
+          <div class="actions">
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS</button>
+            <button class="danger" type="button" onclick="delItem('sig', ${i})">🗑️ Supprimer l’objet</button>
+          </div>
+
+          <label>Photos</label>
+          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'sig', ${i})">
+          <div class="photos" id="sigPhotos_${i}"></div>
+
+          <label>Commentaire</label>
+          <textarea oninput="S.sig[${i}].comment=this.value">${o.comment||''}</textarea>
+        </div>
+      </details>`;
+    sig_list.appendChild(wrap);
+    onSigType(i, o.type||'Directionnelle', true);
+    addPhotoGrid(`sigPhotos_${i}`, S.sig, i);
+  });
+
+  // BALISAGE sections
+  bal_list.innerHTML="";
+  S.bal.sections.forEach((o,i)=>{
+    const wrap=document.createElement('div'); wrap.className="item";
+    wrap.innerHTML = `
+      <details open>
+        <summary>Balisage n°${i+1}</summary>
+        <div class="inner">
+          <div class="row3">
+            <div>
+              <label>Intervention</label>
+              <select onchange="S.bal.sections[${i}].action=this.value">
+                <option ${o.action==='Maintien'?'selected':''}>Maintien</option>
+                <option ${o.action==='Création'?'selected':''}>Création</option>
+                <option ${o.action==='Reprise partielle'?'selected':''}>Reprise partielle</option>
+                <option ${o.action==='Reprise complète'?'selected':''}>Reprise complète</option>
+              </select>
+            </div>
+            <div>
+              <label>Linéaire estimé (m)</label>
+              <input type="number" min="0" step="10" value="${o.linear||''}" oninput="S.bal.sections[${i}].linear=this.value">
+            </div>
+            <div>
+              <label>Temps estimé (JH)</label>
+              <input type="number" min="0" step="0.5" value="${o.jh||''}" oninput="S.bal.sections[${i}].jh=this.value">
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              </div>
+
+          <div class="actions">
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.bal.sections[${i}].lat=la;S.bal.sections[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS (début)</button>
+            <button class="danger" type="button" onclick="delBalSec(${i})">🗑️ Supprimer l’objet</button>
+          </div>
+
+          <label>Photos</label>
+          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'bal', ${i})">
+          <div class="photos" id="balPhotos_${i}"></div>
+        </div>
+      </details>`;
+    bal_list.appendChild(wrap);
+    addPhotoGrid(`balPhotos_${i}`, S.bal.sections, i);
+  });
+
+  // TRAVAUX
+  trav_list.innerHTML="";
+  S.trav.forEach((o,i)=>{
+    const wrap=document.createElement('div'); wrap.className="item";
+    wrap.innerHTML = `
+      <details open>
+        <summary>Travail n°${i+1}</summary>
+        <div class="inner">
+          <label>Type de travaux</label>
+          <select onchange="S.trav[${i}].type=this.value">
+            <option ${o.type==='Débroussaillage'?'selected':''}>Débroussaillage</option>
+            <option ${o.type==='Élagage'?'selected':''}>Élagage</option>
+            <option ${o.type==='Chablis'?'selected':''}>Chablis</option>
+            <option ${o.type==='Reprofilage'?'selected':''}>Reprofilage</option>
+            <option ${o.type==='Reprise d’assise'?'selected':''}>Reprise d’assise</option>
+            <option ${o.type==='Drainage'?'selected':''}>Drainage</option>
+            <option ${o.type==='Purge'?'selected':''}>Purge</option>
+            <option ${o.type==='Autres'?'selected':''}>Autres</option>
+          </select>
+
+          <div class="row3">
+            <div>
+              <label>Linéaire estimé (m)</label>
+              <input type="number" min="0" step="10" value="${o.linear||''}" oninput="S.trav[${i}].linear=this.value">
+            </div>
+            <div>
+              <label>Temps estimé (JH)</label>
+              <input type="number" min="0" step="0.5" value="${o.jh||''}" oninput="S.trav[${i}].jh=this.value">
+            </div>
+            <div>
+              </div>
+
+          <label>Précision (si “Autres”)</label>
+          <input value="${o.other||''}" oninput="S.trav[${i}].other=this.value">
+
+          <div class="actions">
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS (début)</button>
+            <button class="danger" type="button" onclick="delItem('trav', ${i})">🗑️ Supprimer l’objet</button>
+          </div>
+
+          <label>Photos</label>
+          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'trav', ${i})">
+          <div class="photos" id="travPhotos_${i}"></div>
+
+          <label>Commentaire</label>
+          <textarea oninput="S.trav[${i}].comment=this.value">${o.comment||''}</textarea>
+        </div>
+      </details>`;
+    trav_list.appendChild(wrap);
+    addPhotoGrid(`travPhotos_${i}`, S.trav, i);
+  });
+
+  // POINTS SENSIBLES
+  sens_list.innerHTML="";
+  S.sens.forEach((o,i)=>{
+    const wrap=document.createElement('div'); wrap.className="item";
+    wrap.innerHTML = `
+      <details open>
+        <summary>Point sensible n°${i+1}</summary>
+        <div class="inner">
+          <div class="row2">
+            <div>
+              <label>Catégorie</label>
+              <select onchange="S.sens[${i}].cat=this.value">
+                <option ${o.cat==='Cohabitation'?'selected':''}>Cohabitation</option>
+                <option ${o.cat==='Obstacle'?'selected':''}>Obstacle</option>
+                <option ${o.cat==='État du sol'?'selected':''}>État du sol</option>
+                <option ${o.cat==='Hydraulique'?'selected':''}>Hydraulique</option>
+                <option ${o.cat==='Ouvrage'?'selected':''}>Ouvrage</option>
+                <option ${o.cat==='Autres'?'selected':''}>Autres</option>
+              </select>
+            </div>
+            <div>
+              </div>
+
+          <label>Précision (si “Autres”)</label>
+          <input value="${o.other||''}" oninput="S.sens[${i}].other=this.value">
+
+          <div class="actions">
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS</button>
+            <button class="danger" type="button" onclick="delItem('sens', ${i})">🗑️ Supprimer l’objet</button>
+          </div>
+
+          <label>Photos</label>
+          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'sens', ${i})">
+          <div class="photos" id="sensPhotos_${i}"></div>
+
+          <label>Description / commentaire</label>
+          <textarea oninput="S.sens[${i}].comment=this.value">${o.comment||''}</textarea>
+        </div>
+      </details>`;
+    sens_list.appendChild(wrap);
+    addPhotoGrid(`sensPhotos_${i}`, S.sens, i);
+  });
+
+  updateDerived();
+}
+
+// Signalétique dynamic style
+function onSigType(i, type, initializing=false){
+  S.sig[i].type = type;
+  const styleSel=document.getElementById(`sig_style_${i}`);
+  const map={
+    'Directionnelle':['Mat','Jalon signalétique','Jalon balisage','Jalon pastoral','Totem'],
+    'Départ':['Départ mineur','Départ majeur'],
+    'Information':['Danger','Patrimoine']
+  };
+  styleSel.innerHTML = (map[type]||[]).map(v=>`<option ${S.sig[i].style===v?'selected':''}>${v}</option>`).join('');
+  if(!S.sig[i].style || !map[type].includes(S.sig[i].style)) S.sig[i].style = map[type][0];
+  styleSel.value = S.sig[i].style;
+  if(!initializing) saveAll(false);
+}
+
+// Adders / deleters
+function addSig(){
+  S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],comment:''});
+  saveAll(false); renderAllLists();
+}
+function addBalSec(){
+  S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],comment:''});
+  saveAll(false); renderAllLists();
+}
+function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
+function addTrav(){
+  S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],comment:'',other:''});
+  saveAll(false); renderAllLists();
+}
+function addSens(){
+  S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],comment:'',other:''});
+  saveAll(false); renderAllLists();
+}
+function delItem(kind, i){
+  S[kind].splice(i,1);
+  saveAll(false); renderAllLists();
+}
+
+// Photos
+function onPhotos(e, kind, idx){
+  const files=[...e.target.files];
+  if(!files.length) return;
+  files.forEach(f=>{
+    resizePhoto(f, data=>{
+      if(kind==='sig') S.sig[idx].photos.push(data);
+      if(kind==='bal') S.bal.sections[idx].photos.push(data);
+      if(kind==='trav') S.trav[idx].photos.push(data);
+      if(kind==='sens') S.sens[idx].photos.push(data);
+      saveAll(false);
+      renderAllLists();
+    });
+  });
+}
+
+// Save / Load
+function saveAll(showToast=true){
+  // collect header fields
+  S.project = {
+    name:p_name.value||'',
+    type:p_type.value||'',
+    commune:p_commune.value||'',
+    date:p_date.value||'',
+    part1:p_part1.value||'',
+    part2:p_part2.value||'',
+    com:p_com.value||''
+  };
+  // balisage global
+  S.bal.types = selMulti(bal_types);
+  S.bal.action_global = bal_action_global.value;
+  S.bal.com_global = bal_com_global.value||'';
+  // entretien
+  S.ent = { jh: ent_jh.value||'', nat: selMulti(ent_nat), com: ent_com.value||'' };
+  // bureau
+  S.bureau = {
+    interest: dec_interest.value,
+    decision: dec_go.value,
+    arg: dec_com.value||'',
+    tour_pot: tour_pot.value,
+    cost_init_manual: cost_init_manual.value||''
+  };
+
+  localStorage.setItem(KEY, JSON.stringify(S));
+  updateDerived();
+  if(showToast) alert("Sauvegardé");
+}
+
+function loadAll(){
+  const s=localStorage.getItem(KEY);
+  if(!s) return;
+  S = JSON.parse(s);
+
+  // fill fields
+  p_name.value = S.project?.name||'';
+  p_type.value = S.project?.type||'Création';
+  p_commune.value = S.project?.commune||'';
+  p_date.value = S.project?.date||'';
+  p_part1.value = S.project?.part1||'';
+  p_part2.value = S.project?.part2||'';
+  p_com.value = S.project?.com||'';
+
+  setMulti(bal_types, S.bal?.types||[]);
+  bal_action_global.value = S.bal?.action_global||'Maintien';
+  bal_com_global.value = S.bal?.com_global||'';
+
+  ent_jh.value = S.ent?.jh||'';
+  setMulti(ent_nat, S.ent?.nat||[]);
+  ent_com.value = S.ent?.com||'';
+
+  dec_interest.value = S.bureau?.interest||'3';
+  dec_go.value = S.bureau?.decision||'GO';
+  dec_com.value = S.bureau?.arg||'';
+  tour_pot.value = S.bureau?.tour_pot||'Moyen';
+  cost_init_manual.value = S.bureau?.cost_init_manual||'';
+
+  renderAllLists();
+}
+
+function resetAll(){
+  if(!confirm("Supprimer toutes les données locales de cette fiche ?")) return;
+  localStorage.removeItem(KEY);
+  location.reload();
+}
+
+// Derived updates trigger
+['ent_jh','cost_init_manual'].forEach(id=>{
+  document.addEventListener('input', (e)=>{
+    if(e.target && e.target.id===id) updateDerived();
+  });
+});
+
+// -------------------- EXPORT --------------------
+function gpxForPoints(points, prefix, descFieldFn){
+  let gpx='<?xml version="1.0" encoding="UTF-8"?>\\n<gpx version="1.1" creator="FicheItineraireV1.7">\\n';
+  points.forEach((o,i)=>{
+    if(o.lat!=null && o.lon!=null){
+      const name = `${prefix}_${i+1}`;
+      const desc = (descFieldFn? descFieldFn(o,i):'') || '';
+      gpx += `<wpt lat="${o.lat}" lon="${o.lon}"><name>${escapeXml(name)}</name><desc>${escapeXml(desc)}</desc></wpt>\\n`;
+    }
+  });
+  gpx+='</gpx>\\n';
+  return gpx;
+}
+
+function escapeXml(s){
+  return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&apos;");
+}
+
+function bureauHTML(){
+  const p=S.project||{};
+  let h=`<!doctype html><meta charset="utf-8"><title>Fiche projet itinéraire</title>
+  <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px} .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0} img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}</style>`;
+  h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
+  h+=`<p><strong>Participants :</strong> ${escapeXml(p.part1||'')} / ${escapeXml(p.part2||'')}</p>`;
+  if(p.com) h+=`<p>${escapeXml(p.com)}</p>`;
+
+  // Signalétique
+  h+=`<h2>Signalétique</h2>`;
+  S.sig.forEach((o,i)=>{
+    h+=`<div class="card"><strong>Signalétique ${i+1}</strong><ul>
+      <li>Type : ${escapeXml(o.type||'')}</li>
+      <li>Style : ${escapeXml(o.style||'')}</li>
+      <li>Action : ${escapeXml(o.action||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+      <li>Coût : ${escapeXml(o.cost||'')}</li>
+    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+  });
+
+  // Balisage
+  h+=`<h2>Balisage</h2>`;
+  h+=`<div class="card"><strong>Global</strong><ul>
+    <li>Types : ${(S.bal.types||[]).map(escapeXml).join(', ')}</li>
+    <li>Action : ${escapeXml(S.bal.action_global||'')}</li>
+  </ul><div>${escapeXml(S.bal.com_global||'')}</div></div>`;
+  (S.bal.sections||[]).forEach((o,i)=>{
+    h+=`<div class="card"><strong>Section ${i+1}</strong><ul>
+      <li>Action : ${escapeXml(o.action||'')}</li>
+      <li>Linéaire : ${escapeXml(o.linear||'')}</li>
+      <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+      <li>Coût : ${escapeXml(o.cost||'')}</li>
+    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+  });
+
+  // Travaux
+  h+=`<h2>Travaux de réouverture</h2>`;
+  S.trav.forEach((o,i)=>{
+    h+=`<div class="card"><strong>Travail ${i+1}</strong><ul>
+      <li>Type : ${escapeXml(o.type||'')}</li>
+      <li>Linéaire : ${escapeXml(o.linear||'')}</li>
+      <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+      <li>Coût : ${escapeXml(o.cost||'')}</li>
+      ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
+    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+  });
+
+  // Entretien
+  h+=`<h2>Entretien annuel estimé</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Volume : ${escapeXml(S.ent.jh||'')}</li>
+    <li>Nature : ${(S.ent.nat||[]).map(escapeXml).join(', ')}</li>
+  </ul><div>${escapeXml(S.ent.com||'')}</div></div>`;
+
+  // Points sensibles
+  h+=`<h2>Points sensibles</h2>`;
+  S.sens.forEach((o,i)=>{
+    h+=`<div class="card"><strong>Point sensible ${i+1}</strong><ul>
+      <li>Catégorie : ${escapeXml(o.cat||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+      <li>Coût : ${escapeXml(o.cost||'')}</li>
+      ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
+    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+  });
+
+  // Décision
+  h+=`<h2>Décision & arbitrage</h2>`;
+  const autoCost = (Number(document.getElementById('cost_init_auto').innerText)||0);
+  const manualCost = S.bureau.cost_init_manual ? Number(S.bureau.cost_init_manual||0) : null;
+  h+=`<div class="card"><ul>
+    <li>Intérêt : ${escapeXml(S.bureau.interest||'')}</li>
+    <li>Décision : ${escapeXml(S.bureau.decision||'')}</li>
+    <li>Mise en tourisme : ${escapeXml(S.bureau.tour_pot||'')}</li>
+    <li>Coût initial (auto) : ${autoCost} €</li>
+    <li>Coût initial (manuel) : ${manualCost!=null ? manualCost+' €' : '—'}</li>
+    <li>Entretien annuel : ${escapeXml(S.ent.jh||'')} JH/an</li>
+  </ul><div>${escapeXml(S.bureau.arg||'')}</div></div>`;
+
+  return h;
+}
+
+function exportZIP(){
+  // Ensure latest values are saved
+  saveAll(false);
+
+  if(typeof JSZip==='undefined'){
+    alert("JSZip non chargé. Vérifie la connexion Internet (CDN) ou demande une version 100% offline.");
+    return;
+  }
+
+  const zip=new JSZip();
+  const stamp = nowStamp();
+  const safeName = (S.project.name||"PROJET_ITINERAIRE").replaceAll(' ','_').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) || "PROJET_ITINERAIRE";
+
+  // GPX files (only with GPS)
+  zip.file("signaletique.gpx", gpxForPoints(S.sig, "SIG", o=>`${o.type||''} | ${o.style||''} | ${o.action||''}`));
+  zip.file("balisage_sections.gpx", gpxForPoints(S.bal.sections, "BAL", o=>`${o.action||''} | lin=${o.linear||''}m | jh=${o.jh||''}`));
+  zip.file("travaux.gpx", gpxForPoints(S.trav, "TRAV", o=>`${o.type||''} | lin=${o.linear||''}m | jh=${o.jh||''}`));
+  zip.file("points_sensibles.gpx", gpxForPoints(S.sens, "SENS", o=>`${o.cat||''}`));
+
+  // Bureau HTML (all objects, GPS optional)
+  zip.file("fiche_bureau.html", bureauHTML());
+
+  // Raw JSON backup (always useful)
+  zip.file("fiche_donnees.json", JSON.stringify(S, null, 2));
+
+  // Photos
+  function addPhotos(arr, prefix){
+    arr.forEach((o,i)=>{
+      (o.photos||[]).forEach((p,pi)=>{
+        const b64 = p.split(',')[1];
+        zip.file(`photos/${prefix}_${i+1}_${pi+1}.jpg`, b64, {base64:true});
+      });
+    });
+  }
+  addPhotos(S.sig, "SIG");
+  addPhotos(S.bal.sections, "BAL");
+  addPhotos(S.trav, "TRAV");
+  addPhotos(S.sens, "SENS");
+
+  zip.generateAsync({type:'blob'}).then(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download=`${safeName}_${stamp}.zip`;
+    a.click();
+  });
+}
+
+// -------------------- INIT --------------------
+document.addEventListener('input', (e)=>{
+  // keep derived values in sync without spamming storage
+  updateDerived();
+});
+document.addEventListener('change', (e)=>{
+  updateDerived();
+});
+
+loadAll();
 </script>
-</body></html>
+</body>
+</html>
