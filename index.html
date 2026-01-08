@@ -51,7 +51,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V1.8 (strict)</h1></header>
+<header><h1>Fiche projet itinéraire – V1.9 (export GPX corrigé)</h1></header>
 
 <main>
 <!-- A -->
@@ -228,7 +228,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.8"},
+  meta:{version:"1.9"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -653,17 +653,42 @@ function resetAll(){
 
 // -------------------- EXPORT --------------------
 function gpxForPoints(points, prefix, descFieldFn){
-  let gpx='<?xml version="1.0" encoding="UTF-8"?>\\n<gpx version="1.1" creator="FicheItineraireV1.7">\\n';
+  // GPX 1.1 strict (QGIS-compatible)
+  // - Proper namespaces + schemaLocation
+  // - UTF-8 XML declaration
+  // - Waypoints only (wpt)
+  const header = `<?xml version="1.0" encoding="UTF-8"?>
+` +
+`<gpx version="1.1" creator="FicheItineraireAPN"
+` +
+` xmlns="http://www.topografix.com/GPX/1/1"
+` +
+` xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+` +
+` xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+`;
+  let gpx = header;
+
   points.forEach((o,i)=>{
-    if(o.lat!=null && o.lon!=null){
+    const lat = (o && o.lat!=null) ? Number(o.lat) : null;
+    const lon = (o && o.lon!=null) ? Number(o.lon) : null;
+    if(Number.isFinite(lat) && Number.isFinite(lon)){
       const name = `${prefix}_${i+1}`;
-      const desc = (descFieldFn? descFieldFn(o,i):'') || '';
-      gpx += `<wpt lat="${o.lat}" lon="${o.lon}"><name>${escapeXml(name)}</name><desc>${escapeXml(desc)}</desc></wpt>\\n`;
+      const desc = (descFieldFn ? descFieldFn(o,i) : '') || '';
+      // Use '.' decimal separator and stable precision
+      gpx += `<wpt lat="${lat.toFixed(8)}" lon="${lon.toFixed(8)}">` +
+             `<name>${escapeXml(name)}</name>` +
+             `<desc>${escapeXml(desc)}</desc>` +
+             `</wpt>
+`;
     }
   });
-  gpx+='</gpx>\\n';
+
+  gpx += `</gpx>
+`;
   return gpx;
 }
+
 
 function escapeXml(s){
   return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&apos;");
