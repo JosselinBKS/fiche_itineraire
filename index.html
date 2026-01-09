@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V16.1)</title>
+<title>PWA – Fiche projet itinéraire (V16.1PATCH)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -76,7 +76,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V16.1 (audio: suppression OK + enregistrement uniquement)</h1></header>
+<header><h1>Fiche projet itinéraire – V16.1 PATCH (audio: enregistrement A + retrait choisir fichier)</h1></header>
 
 <main>
 <!-- A -->
@@ -386,7 +386,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"16.1"},
+  meta:{version:"16.1PATCH"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -813,7 +813,7 @@ function renderAllLists(){
           <label>Audios</label>
           <div class="audio-actions">
             <button class="primary" type="button" onclick="document.getElementById('sigAudioRec_${i}').click()">🎙️ Enregistrer</button>
-            <button class="ghost" type="button" onclick="document.getElementById('sigAudioPick_${i}').click()">📎 Choisir fichier</button>
+            <button class="ghost" type="button" onclick="document.getElementById('sigAudioPick_${i}').click()"></button>
           </div>
           <input id="sigAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'sig', ${i})" style="display:none">
           <input id="sigAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'sig', ${i})" style="display:none">
@@ -883,7 +883,7 @@ function renderAllLists(){
           <label>Audios</label>
           <div class="audio-actions">
             <button class="primary" type="button" onclick="document.getElementById('balAudioRec_${i}').click()">🎙️ Enregistrer</button>
-            <button class="ghost" type="button" onclick="document.getElementById('balAudioPick_${i}').click()">📎 Choisir fichier</button>
+            <button class="ghost" type="button" onclick="document.getElementById('balAudioPick_${i}').click()"></button>
           </div>
           <input id="balAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'bal', ${i})" style="display:none">
           <input id="balAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'bal', ${i})" style="display:none">
@@ -951,7 +951,7 @@ function renderAllLists(){
           <label>Audios</label>
           <div class="audio-actions">
             <button class="primary" type="button" onclick="document.getElementById('travAudioRec_${i}').click()">🎙️ Enregistrer</button>
-            <button class="ghost" type="button" onclick="document.getElementById('travAudioPick_${i}').click()">📎 Choisir fichier</button>
+            <button class="ghost" type="button" onclick="document.getElementById('travAudioPick_${i}').click()"></button>
           </div>
           <input id="travAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'trav', ${i})" style="display:none">
           <input id="travAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'trav', ${i})" style="display:none">
@@ -1013,7 +1013,7 @@ function renderAllLists(){
           <label>Audios</label>
           <div class="audio-actions">
             <button class="primary" type="button" onclick="document.getElementById('sensAudioRec_${i}').click()">🎙️ Enregistrer</button>
-            <button class="ghost" type="button" onclick="document.getElementById('sensAudioPick_${i}').click()">📎 Choisir fichier</button>
+            <button class="ghost" type="button" onclick="document.getElementById('sensAudioPick_${i}').click()"></button>
           </div>
           <input id="sensAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'sens', ${i})" style="display:none">
           <input id="sensAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'sens', ${i})" style="display:none">
@@ -1270,7 +1270,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V16_1"
+`<gpx version="1.1" creator="FicheItineraireAPN_V16_1_PATCH"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1307,7 +1307,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16.1)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16.1PATCH)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
