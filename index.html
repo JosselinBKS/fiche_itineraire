@@ -53,7 +53,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V11 (GPS feedback + enjeux)</h1></header>
+<header><h1>Fiche projet itinéraire – V12 (accordéon + focus ajout)</h1></header>
 
 <main>
 <!-- A -->
@@ -351,7 +351,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"11"},
+  meta:{version:"12"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -373,6 +373,59 @@ function setMulti(el, values){
   const set=new Set(values||[]);
   [...el.options].forEach(o=>o.selected=set.has(o.value));
 }
+
+// -------------------- ACCORDÉON (SECTIONS + OBJETS) --------------------
+function closeOtherSections(active){
+  document.querySelectorAll('details.section').forEach(s=>{
+    if(s!==active) s.open=false;
+  });
+}
+function closeSiblingItems(d){
+  const list = d.closest('.item')?.parentElement;
+  if(!list) return;
+  list.querySelectorAll('.item details').forEach(x=>{
+    if(x!==d) x.open=false;
+  });
+}
+function focusItem(listEl, idx){
+  requestAnimationFrame(()=>{
+    const section = listEl.closest('details.section');
+    if(section){
+      section.open=true;
+      closeOtherSections(section);
+      // close items in other sections
+      document.querySelectorAll('details.section').forEach(s=>{
+        if(s!==section) s.querySelectorAll('.item details').forEach(x=>x.open=false);
+      });
+    }
+    const d = listEl.querySelectorAll('.item details')[idx];
+    if(d){
+      d.open=true;
+      closeSiblingItems(d);
+      d.scrollIntoView({behavior:'smooth', block:'start'});
+      window.scrollBy(0,-8);
+    }
+  });
+}
+
+function onDetailsToggle(e){
+  const d = e.target;
+  if(!(d instanceof HTMLDetailsElement) || !d.open) return;
+
+  // Top-level sections: exclusive
+  if(d.classList.contains('section')){
+    closeOtherSections(d);
+    document.querySelectorAll('details.section').forEach(s=>{
+      if(s!==d) s.querySelectorAll('.item details').forEach(x=>x.open=false);
+    });
+    return;
+  }
+  // Item details: exclusive within the same list
+  closeSiblingItems(d);
+}
+document.addEventListener('toggle', onDetailsToggle, true);
+
+
 
 function nowStamp(){
   const d=new Date();
@@ -454,7 +507,7 @@ function renderAllLists(){
   S.sig.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
+      <details>
         <summary data-sub="">Signalétique n°${i+1}</summary>
         <div class="inner">
           <div class="row2">
@@ -509,7 +562,7 @@ function renderAllLists(){
   S.bal.sections.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
+      <details>
         <summary>Balisage n°${i+1}</summary>
         <div class="inner">
           <div class="row3">
@@ -556,7 +609,7 @@ function renderAllLists(){
   S.trav.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
+      <details>
         <summary>Travail n°${i+1}</summary>
         <div class="inner">
           <label>Type de travaux</label>
@@ -609,7 +662,7 @@ function renderAllLists(){
   S.sens.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
+      <details>
         <summary>Point sensible n°${i+1}</summary>
         <div class="inner">
           <div class="row2">
@@ -669,20 +722,28 @@ function onSigType(i, type, initializing=false){
 // Adders / deleters
 function addSig(){
   S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],comment:''});
+  const idx = S.sig.length-1;
   saveAll(false); renderAllLists();
+  focusItem(sig_list, idx);
 }
 function addBalSec(){
   S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],comment:''});
+  const idx = S.bal.sections.length-1;
   saveAll(false); renderAllLists();
+  focusItem(bal_list, idx);
 }
 function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
 function addTrav(){
   S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],comment:'',other:''});
+  const idx = S.trav.length-1;
   saveAll(false); renderAllLists();
+  focusItem(trav_list, idx);
 }
 function addSens(){
   S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],comment:'',other:''});
+  const idx = S.sens.length-1;
   saveAll(false); renderAllLists();
+  focusItem(sens_list, idx);
 }
 function delItem(kind, i){
   S[kind].splice(i,1);
