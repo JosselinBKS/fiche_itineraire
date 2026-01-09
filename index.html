@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V16)</title>
+<title>PWA – Fiche projet itinéraire (V16.1)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -76,7 +76,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V16 (pièces jointes audio)</h1></header>
+<header><h1>Fiche projet itinéraire – V16.1 (audio: suppression OK + enregistrement uniquement)</h1></header>
 
 <main>
 <!-- A -->
@@ -112,12 +112,10 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
     <textarea id="p_com"></textarea>
 
     <label>Audios (projet)</label>
-    <div class="audio-actions">
-      <button class="primary" type="button" onclick="document.getElementById('projAudioRec').click()">🎙️ Enregistrer</button>
-      <button class="ghost" type="button" onclick="document.getElementById('projAudioPick').click()">📎 Choisir fichier</button>
+    <div class="audio-actions" style="grid-template-columns:1fr">
+      <button class="primary" type="button" onclick="document.getElementById(\'projAudioRec\').click()">🎙️ Enregistrer</button>
     </div>
     <input id="projAudioRec" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'project', 0)" style="display:none">
-    <input id="projAudioPick" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'project', 0)" style="display:none">
     <div class="audios" id="projAudios"></div>
   </div>
 </details>
@@ -388,7 +386,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"16"},
+  meta:{version:"16.1"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -650,24 +648,31 @@ async function renderAudioList(containerId, refs){
     const ref = list[ai];
     const card = document.createElement('div');
     card.className = 'audio-item';
+
     const metaDiv = document.createElement('div');
     metaDiv.className = 'meta';
+
     const nameSpan = document.createElement('div');
     nameSpan.className = 'name';
     nameSpan.textContent = ref.name || ('Audio ' + (ai+1));
+
     const delBtn = document.createElement('button');
     delBtn.className = 'danger';
     delBtn.type = 'button';
-    delBtn.textContent = '🗑️';
+    delBtn.textContent = '🗑️ Supprimer';
     delBtn.style.width = 'auto';
     delBtn.style.padding = '6px 10px';
+
     delBtn.onclick = async ()=>{
+      const idx = list.findIndex(x=>x.id===ref.id);
+      if(idx === -1) return;
       await idbDelAudio(ref.id);
-      list.splice(ai,1);
+      list.splice(idx, 1);
       saveAll(false);
       __focusId = ref.__focusReturn || null;
-      renderAllLists(); // will restore focus if provided
+      renderAllLists();
     };
+
     metaDiv.appendChild(nameSpan);
     metaDiv.appendChild(delBtn);
     card.appendChild(metaDiv);
@@ -1265,7 +1270,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V16"
+`<gpx version="1.1" creator="FicheItineraireAPN_V16_1"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1302,7 +1307,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16.1)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
