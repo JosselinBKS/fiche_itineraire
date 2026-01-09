@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V17.2)</title>
+<title>PWA – Fiche projet itinéraire (V18)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -78,7 +78,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V17.2 (import audios OK)
+<header><h1>Fiche projet itinéraire – V18 (audio intégré)
 
 <main>
 <!-- A -->
@@ -115,9 +115,9 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 
     <label>Médias (projet)</label>
 <div class="media-actions" style="grid-template-columns:1fr">
-  <button class="primary" type="button" onclick="document.getElementById('projAudioRec').click()">🎙️ Enregistrer</button>
+  <button class="primary" type="button" data-rec-btn="project" onclick="toggleRecord('project', 0)">🎙️ Enregistrer</button>
+      <div id="projRecInfo" class="small"></div>
 </div>
-<input id="projAudioRec" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'project', 0)" style="display:none">
 <div class="audios" id="projAudios"></div>
   </div>
 </details>
@@ -390,7 +390,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V17.2"},
+  meta:{version:"V18"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -818,7 +818,6 @@ function renderAllLists(){
   <button class="primary" type="button" onclick="document.getElementById('sigAudioRec_${i}').click()">🎙️ Enregistrer</button>
 </div>
 <input id="sigCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'sig', ${i})" style="display:none">
-<input id="sigAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'sig', ${i})" style="display:none">
 <div class="photos" id="sigPhotos_${i}"></div>
 
           <div class="audios" id="sigAudios_${i}"></div>
@@ -881,7 +880,6 @@ function renderAllLists(){
   <button class="primary" type="button" onclick="document.getElementById('balAudioRec_${i}').click()">🎙️ Enregistrer</button>
 </div>
 <input id="balCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'bal', ${i})" style="display:none">
-<input id="balAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'bal', ${i})" style="display:none">
 <div class="photos" id="balPhotos_${i}"></div>
 
           <div class="audios" id="balAudios_${i}"></div>
@@ -942,7 +940,6 @@ function renderAllLists(){
   <button class="primary" type="button" onclick="document.getElementById('travAudioRec_${i}').click()">🎙️ Enregistrer</button>
 </div>
 <input id="travCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'trav', ${i})" style="display:none">
-<input id="travAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'trav', ${i})" style="display:none">
 <div class="photos" id="travPhotos_${i}"></div>
 
           <div class="audios" id="travAudios_${i}"></div>
@@ -997,7 +994,6 @@ function renderAllLists(){
   <button class="primary" type="button" onclick="document.getElementById('sensAudioRec_${i}').click()">🎙️ Enregistrer</button>
 </div>
 <input id="sensCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'sens', ${i})" style="display:none">
-<input id="sensAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'sens', ${i})" style="display:none">
 <div class="photos" id="sensPhotos_${i}"></div>
 
           <div class="audios" id="sensAudios_${i}"></div>
@@ -1253,7 +1249,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V17.2"
+`<gpx version="1.1" creator="FicheItineraireAPN_V18"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1290,7 +1286,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V17.2)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V18)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1649,7 +1645,7 @@ async function restoreAudiosFromZip(zip, data){
       await idbPutAudio(ref.id, blob, meta);
       // verify (best effort)
       const check = await idbGetAudio(ref.id);
-      if(!(check && check.blob)){ console.warn('Audio not written to IndexedDB (project)', ref.id); }
+      if(!(check && check.blob)){ console.warn('Audio not written to IndexedDB (project)', ref.id); ref.inline = await blobToDataURL(blob); }
       continue;
     }
 
@@ -1676,7 +1672,7 @@ async function restoreAudiosFromZip(zip, data){
 
       await idbPutAudio(ref.id, blob, meta);
       const check = await idbGetAudio(ref.id);
-      if(!(check && check.blob)){ console.warn('Audio not written to IndexedDB', kind, ref.id); }
+      if(!(check && check.blob)){ console.warn('Audio not written to IndexedDB', kind, ref.id); ref.inline = await blobToDataURL(blob); }
     }
   }
 }
@@ -1722,6 +1718,90 @@ function blobToDataURL(blob){
   });
 }
 
+
+// -------------------- AUDIO RECORDING (MediaRecorder) --------------------
+let REC = { active:false, kind:null, idx:null, mr:null, stream:null, chunks:[] };
+
+function canRecord(){
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+}
+
+function setRecordUI(kind, idx, isActive){
+  const sel = (kind==='project') ? `[data-rec-btn="project"]` : `[data-rec-btn="${kind}_${idx}"]`;
+  document.querySelectorAll(sel).forEach(btn=>{
+    btn.textContent = isActive ? "⏹ Stop" : "🎙️ Enregistrer";
+  });
+  const infoId = (kind==='project') ? 'projRecInfo' : `${kind}RecInfo_${idx}`;
+  const el = document.getElementById(infoId);
+  if(el) el.textContent = isActive ? "● Enregistrement en cours…" : "";
+}
+
+async function toggleRecord(kind, idx){
+  try{
+    if(REC.active){
+      if(REC.mr && REC.mr.state !== 'inactive') REC.mr.stop();
+      return;
+    }
+    if(!canRecord()){
+      alert("Enregistrement audio non supporté sur ce navigateur.");
+      return;
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const mr = new MediaRecorder(stream);
+    REC = {active:true, kind, idx, mr, stream, chunks:[]};
+    setRecordUI(kind, idx, true);
+
+    mr.ondataavailable = (e)=>{ if(e.data && e.data.size>0) REC.chunks.push(e.data); };
+    mr.onstop = async ()=>{
+      try{
+        const blob = new Blob(REC.chunks, {type: mr.mimeType || 'audio/webm'});
+        if(REC.stream){ REC.stream.getTracks().forEach(t=>t.stop()); }
+        const targetKind = REC.kind, targetIdx = REC.idx;
+        REC = {active:false, kind:null, idx:null, mr:null, stream:null, chunks:[]};
+        setRecordUI(targetKind, targetIdx, false);
+
+        const id = makeId('AUD');
+        const stamp = nowStamp().replace('_','');
+        const ext = (blob.type.includes('ogg')?'ogg': blob.type.includes('mp4')?'m4a' : blob.type.includes('mpeg')?'mp3' : 'webm');
+        const fname = `voix_${stamp}.${ext}`;
+        const meta = {name: fname, type: blob.type || 'audio/webm', size: blob.size, lastModified: Date.now()};
+        await idbPutAudio(id, blob, meta);
+
+        const ref = {id, name: fname, type: meta.type, size: blob.size};
+        if(targetKind === 'project'){
+          S.projectAudios = S.projectAudios || [];
+          S.projectAudios.push(ref);
+          saveAll(false);
+          renderAudioList('projAudios', S.projectAudios);
+        }else{
+          let arr=null;
+          if(targetKind==='sig') arr=S.sig;
+          if(targetKind==='bal') arr=S.bal.sections;
+          if(targetKind==='trav') arr=S.trav;
+          if(targetKind==='sens') arr=S.sens;
+          if(arr && arr[targetIdx]){
+            arr[targetIdx].audios = arr[targetIdx].audios || [];
+            arr[targetIdx].audios.push(ref);
+            saveAll(false);
+            renderAllLists();
+            const listEl = (targetKind==='sig')?sig_list:(targetKind==='bal')?bal_list:(targetKind==='trav')?trav_list:sens_list;
+            focusItem(listEl, targetIdx);
+          }
+        }
+      }catch(err){
+        console.error(err);
+        alert("Erreur lors de l'enregistrement audio.");
+      }
+    };
+    mr.start();
+  }catch(err){
+    console.error(err);
+    alert("Micro indisponible (autorisation refusée ou origine non sécurisée).");
+    try{ if(REC.stream) REC.stream.getTracks().forEach(t=>t.stop()); }catch(_e){}
+    REC = {active:false, kind:null, idx:null, mr:null, stream:null, chunks:[]};
+    setRecordUI(kind, idx, false);
+  }
+}
 
 // -------------------- INIT --------------------
 document.addEventListener('input', (e)=>{
