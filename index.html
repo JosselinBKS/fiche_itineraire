@@ -51,7 +51,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V1.7 (consolidée)</h1></header>
+<header><h1>Fiche projet itinéraire – V13.2 (correctifs GPS/Photos + titres)</h1></header>
 
 <main>
 <!-- A -->
@@ -228,7 +228,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.7"},
+  meta:{version:"13.2"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -697,7 +697,7 @@ function resetAll(){
 
 // -------------------- EXPORT --------------------
 function gpxForPoints(points, prefix, descFieldFn){
-  let gpx='<?xml version="1.0" encoding="UTF-8"?>\\n<gpx version="1.1" creator="FicheItineraireV1.7">\\n';
+  let gpx='<?xml version="1.0" encoding="UTF-8"?>\\n<gpx version="1.1" creator="FicheItineraireV13.2">\\n';
   points.forEach((o,i)=>{
     if(o.lat!=null && o.lon!=null){
       const name = `${prefix}_${i+1}`;
