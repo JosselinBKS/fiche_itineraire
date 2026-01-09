@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V17.1)</title>
+<title>PWA – Fiche projet itinéraire (V17.2)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -78,7 +78,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V17.1 (import ZIP/JSON + audios)
+<header><h1>Fiche projet itinéraire – V17.2 (import audios OK)
 
 <main>
 <!-- A -->
@@ -379,7 +379,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
     <button class="ghost" onclick="saveAll()">💾 Sauvegarder</button>
     <button class="ghost" onclick="document.getElementById('importFile').click()">📥 Import (ZIP/JSON)</button>
     <input id="importFile" type="file" accept=".zip,application/zip,application/json,.json" onchange="importProject(event)" style="display:none">
-    <button class="primary" onclick="exportZIP()">📦 Export ZIP (GPX + HTML + photos)</button>
+    <button class="primary" onclick="exportZIP()">📦 Export ZIP (GPX + HTML + médias)</button>
     <button class="danger" onclick="resetAll()">🗑️ Réinitialiser</button>
   </div>
 </div>
@@ -390,7 +390,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V17.1"},
+  meta:{version:"V17.2"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1253,7 +1253,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V17.1"
+`<gpx version="1.1" creator="FicheItineraireAPN_V17.2"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1290,7 +1290,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V17.1)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V17.2)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1613,28 +1613,43 @@ async function restoreAudiosFromZip(zip, data){
 
   const files = Object.keys(zip.files).filter(p=>p.startsWith('audios/') && !zip.files[p].dir);
 
+  function mimeFromExt(ext){
+    const e = (ext||'').toLowerCase();
+    if(e==='m4a') return 'audio/mp4';
+    if(e==='mp4') return 'audio/mp4';
+    if(e==='aac') return 'audio/aac';
+    if(e==='mp3') return 'audio/mpeg';
+    if(e==='wav') return 'audio/wav';
+    if(e==='ogg') return 'audio/ogg';
+    if(e==='webm') return 'audio/webm';
+    return 'application/octet-stream';
+  }
+
   for(const p of files){
     const info = parseAudioName(p); // e.g. PROJET_1, SIG_2_1
-    const blob = await zip.file(p).async('blob');
-    const mime = blob.type || ('audio/' + (info.ext||''));
+    const ext = (info.ext||'').toLowerCase();
+    const u8 = await zip.file(p).async('uint8array');
+    const blob = new Blob([u8], {type: mimeFromExt(ext)});
+    const mime = blob.type || ('audio/' + ext);
     const meta = {name: info.base, type:mime, size: blob.size||0, lastModified: Date.now()};
 
     // Determine target ref list + index
     const kind = info.parts[0];
     if(kind === 'PROJET' && info.parts.length>=2){
       const ai = Math.max(0, parseInt(info.parts[1],10)-1);
-      // ensure ref exists
       while(data.projectAudios.length <= ai){
         data.projectAudios.push({id: makeId('AUD'), name: '', type:mime, size:0});
       }
       const ref = data.projectAudios[ai];
       if(!ref.id) ref.id = makeId('AUD');
-      // keep human name if already present (e.g. "voix...m4a"), otherwise use file name
       if(!ref.name) ref.name = info.base;
       ref.type = ref.type || mime;
       ref.size = blob.size||0;
 
       await idbPutAudio(ref.id, blob, meta);
+      // verify (best effort)
+      const check = await idbGetAudio(ref.id);
+      if(!(check && check.blob)){ console.warn('Audio not written to IndexedDB (project)', ref.id); }
       continue;
     }
 
@@ -1660,6 +1675,8 @@ async function restoreAudiosFromZip(zip, data){
       ref.size = blob.size||0;
 
       await idbPutAudio(ref.id, blob, meta);
+      const check = await idbGetAudio(ref.id);
+      if(!(check && check.blob)){ console.warn('Audio not written to IndexedDB', kind, ref.id); }
     }
   }
 }
