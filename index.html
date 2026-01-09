@@ -50,14 +50,29 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 }
 
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
+
+/* V13 – objets plus lisibles */
+details.obj{margin:8px 0 10px 10px;border-left:4px solid var(--line)}
+details.obj > summary{font-weight:900}
+/* flash focus */
+.flash{animation:flashBg 1.2s ease-in-out 1}
+@keyframes flashBg{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+  20%{box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+  60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+}
+/* micro feedback inside objects */
+.uxnote{margin:6px 0 10px;color:#065f46;font-size:.88rem}
+
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V12 (accordéon + focus ajout)</h1></header>
+<header><h1>Fiche projet itinéraire – V13 (accordéon + focus ajout)</h1></header>
 
 <main>
 <!-- A -->
-<details class="section" open>
+<details class="section" data-accordion="one" open>
   <summary>A. Identification <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Nom provisoire / code de l’itinéraire</label>
@@ -91,7 +106,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- B -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>B. Signalétique <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSig()">➕ Ajouter une signalétique</button>
@@ -101,7 +116,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- C -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>C. Balisage <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Types de balisage rencontrés (multi-choix)</label>
@@ -127,7 +142,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- D -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>D. Travaux de réouverture <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addTrav()">➕ Ajouter un travail</button>
@@ -137,7 +152,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- E -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>E. Entretien annuel estimé <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <div class="row2">
@@ -163,7 +178,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- F -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>F. Points sensibles / problématiques de tronçons <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSens()">➕ Ajouter un point sensible</button>
@@ -173,7 +188,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 
 
 <!-- G -->
-<details class="section">
+<details class="section bureau-section" data-accordion="free">
   <summary>G. Caractéristiques de l’itinéraire <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <div class="row2">
@@ -237,7 +252,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- H -->
-<details class="section">
+<details class="section bureau-section" data-accordion="free">
   <summary>H. Contraintes environnementales & réglementaires <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <label>Espaces / zonages traversés</label>
@@ -274,7 +289,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- I -->
-<details class="section">
+<details class="section bureau-section" data-accordion="free">
   <summary>I. Plan d’actions & phasage <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <label>Actions prioritaires (court terme)</label>
@@ -293,7 +308,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 
 
 <!-- K -->
-<details class="section">
+<details class="section bureau-section" data-accordion="free">
   <summary>K. Décision & arbitrage <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <div class="row3">
@@ -351,7 +366,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"12"},
+  meta:{version:"13"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -376,7 +391,9 @@ function setMulti(el, values){
 
 // -------------------- ACCORDÉON (SECTIONS + OBJETS) --------------------
 function closeOtherSections(active){
-  document.querySelectorAll('details.section').forEach(s=>{
+  // Close only exclusive (terrain) sections; keep bureau sections open
+  if(active?.dataset?.accordion === 'free') return;
+  document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
     if(s!==active) s.open=false;
   });
 }
@@ -387,21 +404,49 @@ function closeSiblingItems(d){
     if(x!==d) x.open=false;
   });
 }
+
+let UX_NOTE = null; // {text:string}
+
+function setUxNote(text){
+  UX_NOTE = {text:String(text||'')};
+}
+function showUxNote(detailsEl){
+  if(!UX_NOTE || !UX_NOTE.text) return;
+  const inner = detailsEl.querySelector('.inner');
+  if(!inner) { UX_NOTE=null; return; }
+  // remove any existing note
+  const old = inner.querySelector('.uxnote');
+  if(old) old.remove();
+  const div = document.createElement('div');
+  div.className = 'uxnote';
+  div.textContent = UX_NOTE.text;
+  inner.prepend(div);
+  UX_NOTE = null;
+  setTimeout(()=>{ if(div && div.parentElement) div.remove(); }, 1800);
+}
+
 function focusItem(listEl, idx){
   requestAnimationFrame(()=>{
     const section = listEl.closest('details.section');
     if(section){
       section.open=true;
-      closeOtherSections(section);
-      // close items in other sections
-      document.querySelectorAll('details.section').forEach(s=>{
-        if(s!==section) s.querySelectorAll('.item details').forEach(x=>x.open=false);
-      });
+      // only enforce closing for exclusive sections
+      if(section.dataset.accordion !== 'free'){
+        closeOtherSections(section);
+        // close items in other terrain sections
+        document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
+          if(s!==section) s.querySelectorAll('.item details').forEach(x=>x.open=false);
+        });
+      }
     }
     const d = listEl.querySelectorAll('.item details')[idx];
     if(d){
       d.open=true;
       closeSiblingItems(d);
+      // flash + note
+      d.classList.add('flash');
+      setTimeout(()=>d.classList.remove('flash'), 1300);
+      showUxNote(d);
       d.scrollIntoView({behavior:'smooth', block:'start'});
       window.scrollBy(0,-8);
     }
@@ -412,14 +457,19 @@ function onDetailsToggle(e){
   const d = e.target;
   if(!(d instanceof HTMLDetailsElement) || !d.open) return;
 
-  // Top-level sections: exclusive
+  // Top-level sections
   if(d.classList.contains('section')){
+    // bureau sections: do not close others
+    if(d.dataset.accordion === 'free') return;
+
     closeOtherSections(d);
-    document.querySelectorAll('details.section').forEach(s=>{
+    // close items in other (terrain) sections only
+    document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
       if(s!==d) s.querySelectorAll('.item details').forEach(x=>x.open=false);
     });
     return;
   }
+
   // Item details: exclusive within the same list
   closeSiblingItems(d);
 }
@@ -491,7 +541,10 @@ function delPhoto(containerId, idx, pi){
   if(!arr) return;
   arr[idx].photos.splice(pi,1);
   saveAll(false);
+  setUxNote('🗑️ Photo supprimée');
   renderAllLists();
+  const listEl = (kind==='sig')?sig_list:(kind==='bal')?bal_list:(kind==='trav')?trav_list:sens_list;
+  focusItem(listEl, idx);
 }
 
 function reindexSummaries(listEl, label){
@@ -507,8 +560,8 @@ function renderAllLists(){
   S.sig.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details>
-        <summary data-sub="">Signalétique n°${i+1}</summary>
+      <details class="obj" id="sig_${i}">
+        <summary data-sub="${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}">Signalétique n°${i+1}</summary>
         <div class="inner">
           <div class="row2">
             <div>
@@ -761,7 +814,10 @@ function onPhotos(e, kind, idx){
       if(kind==='trav') S.trav[idx].photos.push(data);
       if(kind==='sens') S.sens[idx].photos.push(data);
       saveAll(false);
+      setUxNote('🖼️ Photo ajoutée');
       renderAllLists();
+      const listEl = (kind==='sig')?sig_list:(kind==='bal')?bal_list:(kind==='trav')?trav_list:sens_list;
+      focusItem(listEl, idx);
     });
   });
 }
@@ -941,6 +997,21 @@ function bureauHTML(){
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
+
+/* V13 – objets plus lisibles */
+details.obj{margin:8px 0 10px 10px;border-left:4px solid var(--line)}
+details.obj > summary{font-weight:900}
+/* flash focus */
+.flash{animation:flashBg 1.2s ease-in-out 1}
+@keyframes flashBg{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+  20%{box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+  60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+}
+/* micro feedback inside objects */
+.uxnote{margin:6px 0 10px;color:#065f46;font-size:.88rem}
+
 </style>`;
 
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
