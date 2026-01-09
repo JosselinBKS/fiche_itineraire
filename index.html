@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V13.3)</title>
+<title>PWA – Fiche projet itinéraire (V14)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -62,10 +62,12 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
   60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
   100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
 }
+
+.photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V13.3 (focus ajout = fermeture auto des objets)</h1></header>
+<header><h1>Fiche projet itinéraire – V14 (caméra + galerie)</h1></header>
 
 <main>
 <!-- A -->
@@ -363,7 +365,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"13.3"},
+  meta:{version:"14"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -604,7 +606,12 @@ function renderAllLists(){
           </div>
 
           <label>Photos</label>
-          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'sig', ${i})">
+          <div class="photo-actions">
+            <button class="primary" type="button" onclick="document.getElementById('sigCam_${i}').click()">📷 Caméra</button>
+            <button class="ghost" type="button" onclick="document.getElementById('sigGal_${i}').click()">🖼 Galerie</button>
+          </div>
+          <input id="sigCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'sig', ${i})" style="display:none">
+          <input id="sigGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'sig', ${i})" style="display:none">
           <div class="photos" id="sigPhotos_${i}"></div>
 
           <label>Commentaire</label>
@@ -655,7 +662,12 @@ function renderAllLists(){
           </div>
 
           <label>Photos</label>
-          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'bal', ${i})">
+          <div class="photo-actions">
+            <button class="primary" type="button" onclick="document.getElementById('balCam_${i}').click()">📷 Caméra</button>
+            <button class="ghost" type="button" onclick="document.getElementById('balGal_${i}').click()">🖼 Galerie</button>
+          </div>
+          <input id="balCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'bal', ${i})" style="display:none">
+          <input id="balGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'bal', ${i})" style="display:none">
           <div class="photos" id="balPhotos_${i}"></div>
         </div>
       </details>`;
@@ -705,7 +717,12 @@ function renderAllLists(){
           </div>
 
           <label>Photos</label>
-          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'trav', ${i})">
+          <div class="photo-actions">
+            <button class="primary" type="button" onclick="document.getElementById('travCam_${i}').click()">📷 Caméra</button>
+            <button class="ghost" type="button" onclick="document.getElementById('travGal_${i}').click()">🖼 Galerie</button>
+          </div>
+          <input id="travCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'trav', ${i})" style="display:none">
+          <input id="travGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'trav', ${i})" style="display:none">
           <div class="photos" id="travPhotos_${i}"></div>
 
           <label>Commentaire</label>
@@ -749,7 +766,12 @@ function renderAllLists(){
           </div>
 
           <label>Photos</label>
-          <input type="file" accept="image/*" capture="environment" multiple onchange="onPhotos(event, 'sens', ${i})">
+          <div class="photo-actions">
+            <button class="primary" type="button" onclick="document.getElementById('sensCam_${i}').click()">📷 Caméra</button>
+            <button class="ghost" type="button" onclick="document.getElementById('sensGal_${i}').click()">🖼 Galerie</button>
+          </div>
+          <input id="sensCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'sens', ${i})" style="display:none">
+          <input id="sensGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'sens', ${i})" style="display:none">
           <div class="photos" id="sensPhotos_${i}"></div>
 
           <label>Description / commentaire</label>
@@ -841,6 +863,8 @@ function delItem(kind, i){
 function onPhotos(e, kind, idx){
   const files=[...e.target.files];
   if(!files.length) return;
+  // allow taking the same kind of photo again
+  try{ e.target.value=''; }catch(_e){}
   files.forEach(f=>{
     resizePhoto(f, data=>{
       if(kind==='sig') S.sig[idx].photos.push(data);
@@ -987,7 +1011,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V13_3"
+`<gpx version="1.1" creator="FicheItineraireAPN_V14"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1024,7 +1048,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V13.3)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V14)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1041,6 +1065,8 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
   60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
   100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
 }
+
+.photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 </style>`;
 
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
