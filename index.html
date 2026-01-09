@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V18)</title>
+<title>PWA – Fiche projet itinéraire (V18.1)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -78,7 +78,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V18 (audio intégré)
+<header><h1>Fiche projet itinéraire – V18.1 (audio import clarifié + enregistrement objets)
 
 <main>
 <!-- A -->
@@ -390,7 +390,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V18"},
+  meta:{version:"V18.1"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -815,7 +815,9 @@ function renderAllLists(){
           <label>Médias</label>
 <div class="media-actions">
   <button class="primary" type="button" onclick="document.getElementById('sigCam_${i}').click()">📷 Caméra</button>
-  <button class="primary" type="button" onclick="document.getElementById('sigAudioRec_${i}').click()">🎙️ Enregistrer</button>
+  <button class="primary" type="button" data-rec-btn="sig_${i}" onclick="toggleRecord('sig', ${i})">🎙️ Enregistrer</button>
+</div>
+<div id="sigRecInfo_${i}" class="small"></div>
 </div>
 <input id="sigCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'sig', ${i})" style="display:none">
 <div class="photos" id="sigPhotos_${i}"></div>
@@ -877,7 +879,9 @@ function renderAllLists(){
           <label>Médias</label>
 <div class="media-actions">
   <button class="primary" type="button" onclick="document.getElementById('balCam_${i}').click()">📷 Caméra</button>
-  <button class="primary" type="button" onclick="document.getElementById('balAudioRec_${i}').click()">🎙️ Enregistrer</button>
+  <button class="primary" type="button" data-rec-btn="bal_${i}" onclick="toggleRecord('bal', ${i})">🎙️ Enregistrer</button>
+</div>
+<div id="balRecInfo_${i}" class="small"></div>
 </div>
 <input id="balCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'bal', ${i})" style="display:none">
 <div class="photos" id="balPhotos_${i}"></div>
@@ -937,7 +941,9 @@ function renderAllLists(){
           <label>Médias</label>
 <div class="media-actions">
   <button class="primary" type="button" onclick="document.getElementById('travCam_${i}').click()">📷 Caméra</button>
-  <button class="primary" type="button" onclick="document.getElementById('travAudioRec_${i}').click()">🎙️ Enregistrer</button>
+  <button class="primary" type="button" data-rec-btn="trav_${i}" onclick="toggleRecord('trav', ${i})">🎙️ Enregistrer</button>
+</div>
+<div id="travRecInfo_${i}" class="small"></div>
 </div>
 <input id="travCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'trav', ${i})" style="display:none">
 <div class="photos" id="travPhotos_${i}"></div>
@@ -991,7 +997,9 @@ function renderAllLists(){
           <label>Médias</label>
 <div class="media-actions">
   <button class="primary" type="button" onclick="document.getElementById('sensCam_${i}').click()">📷 Caméra</button>
-  <button class="primary" type="button" onclick="document.getElementById('sensAudioRec_${i}').click()">🎙️ Enregistrer</button>
+  <button class="primary" type="button" data-rec-btn="sens_${i}" onclick="toggleRecord('sens', ${i})">🎙️ Enregistrer</button>
+</div>
+<div id="sensRecInfo_${i}" class="small"></div>
 </div>
 <input id="sensCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'sens', ${i})" style="display:none">
 <div class="photos" id="sensPhotos_${i}"></div>
@@ -1249,7 +1257,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V18"
+`<gpx version="1.1" creator="FicheItineraireAPN_V18.1"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1286,7 +1294,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V18)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V18.1)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1528,8 +1536,10 @@ async function importProject(event){
   if(name.endsWith('.json') || file.type.includes('json')){
     const txt = await file.text();
     const data = JSON.parse(txt);
+    data.meta = data.meta || {};
+    data.meta.last_import = 'json';
     await applyImportedData(data, null);
-    alert("Import JSON terminé.");
+    alert("Import JSON terminé. ⚠️ Les audios ne sont pas importables depuis un JSON seul : importe le ZIP pour récupérer les audios.");
     return;
   }
 
@@ -1554,6 +1564,8 @@ async function importProject(event){
   }
   const jsonTxt = await jsonFile.async("string");
   const data = JSON.parse(jsonTxt);
+  data.meta = data.meta || {};
+  data.meta.last_import = 'zip';
 
   // Restore audios from /audios and map by naming convention
   await restoreAudiosFromZip(zip, data);
