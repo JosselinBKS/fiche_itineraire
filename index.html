@@ -51,7 +51,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V1.9 (export GPX corrigé)</h1></header>
+<header><h1>Fiche projet itinéraire – V1.10.1 (enjeux & contraintes)</h1></header>
 
 <main>
 <!-- A -->
@@ -169,6 +169,130 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   </div>
 </details>
 
+
+<!-- G -->
+<details class="section">
+  <summary>G. Caractéristiques de l’itinéraire <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <div class="row2">
+      <div>
+        <label>Type de parcours</label>
+        <select id="it_route_type">
+          <option>Boucle</option>
+          <option>Aller-retour</option>
+          <option>Itinérance</option>
+        </select>
+      </div>
+      <div>
+        <label>Thème principal</label>
+        <input id="it_theme" placeholder="ex : patrimoine, lac, pastoralisme…">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div>
+        <label>Longueur (km)</label>
+        <input id="it_length" type="number" step="0.1" min="0">
+      </div>
+      <div>
+        <label>Dénivelé + (m)</label>
+        <input id="it_dplus" type="number" step="10" min="0">
+      </div>
+      <div>
+        <label>Dénivelé – (m)</label>
+        <input id="it_dminus" type="number" step="10" min="0">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div>
+        <label>Temps estimé</label>
+        <input id="it_time" placeholder="ex : 3h30">
+      </div>
+      <div>
+        <label>Public cible</label>
+        <select id="it_public">
+          <option>Familial</option>
+          <option>Grand public</option>
+          <option>Randonneur confirmé</option>
+        </select>
+      </div>
+      <div>
+        <label>Saisonnalité</label>
+        <select id="it_season">
+          <option>Toute l’année</option>
+          <option>Hors neige</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Sens conseillé</label>
+    <input id="it_direction" placeholder="ex : sens horaire conseillé…">
+
+    <label>Commentaires libres</label>
+    <textarea id="it_com"></textarea>
+  </div>
+</details>
+
+<!-- H -->
+<details class="section">
+  <summary>H. Contraintes environnementales & réglementaires <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <label>Espaces / zonages traversés</label>
+    <select id="env_zones" multiple>
+      <option>Natura 2000</option>
+      <option>Site classé / inscrit</option>
+      <option>Réserve naturelle</option>
+      <option>ENS</option>
+      <option>Forêt domaniale / ONF</option>
+      <option>Autres</option>
+    </select>
+
+    <hr>
+    <label>Enjeux identifiés (multi-choix)</label>
+    <select id="enjeux" multiple>
+      <option>Risque de chutes de blocs</option>
+      <option>Crues / aléas hydrauliques</option>
+      <option>Érosion des sentiers</option>
+      <option>Pastoralisme</option>
+      <option>Chasse</option>
+      <option>Autres</option>
+    </select>
+
+    <label>Commentaires complémentaires (enjeux & contraintes)</label>
+    <textarea id="enjeux_com"></textarea>
+
+
+    <label>Contraintes environnementales identifiées</label>
+    <textarea id="env_constraints" placeholder="ex : périodes de quiétude, habitats sensibles, adaptations…"></textarea>
+
+    <label>Procédures / vigilances pressenties</label>
+    <textarea id="env_procedures" placeholder="ex : évaluation d’incidences, avis partenaires, mesures d’évitement…"></textarea>
+
+    <label>Commentaires complémentaires</label>
+    <textarea id="env_com"></textarea>
+  </div>
+</details>
+
+<!-- I -->
+<details class="section">
+  <summary>I. Plan d’actions & phasage <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <label>Actions prioritaires (court terme)</label>
+    <textarea id="plan_short"></textarea>
+
+    <label>Actions à moyen terme</label>
+    <textarea id="plan_mid"></textarea>
+
+    <label>Phasage prévisionnel</label>
+    <textarea id="plan_phasage"></textarea>
+
+    <label>Commentaires</label>
+    <textarea id="plan_com"></textarea>
+  </div>
+</details>
+
+
 <!-- K -->
 <details class="section">
   <summary>K. Décision & arbitrage <span class="badge bureau">bureau</span></summary>
@@ -228,14 +352,17 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.9"},
+  meta:{version:"1.10.1"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
   trav:[],
   ent:{jh:"", nat:[], com:""},
   sens:[],
-  bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:""}
+  bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:"",
+  it:{route_type:"Boucle", theme:"", length:"", dplus:"", dminus:"", time:"", public:"Grand public", season:"Toute l’année", direction:"", com:""},
+  env:{zones:[], enjeux:[], enjeux_com:"", constraints:"", procedures:"", com:""},
+  plan:{short:"", mid:"", phasage:"", com:""}}
 };
 
 const KEY="pwa_itin_v1_8";
@@ -599,7 +726,33 @@ function saveAll(showToast=true){
     decision: dec_go.value,
     arg: dec_com.value||'',
     tour_pot: tour_pot.value,
-    cost_init_manual: cost_init_manual.value||''
+    cost_init_manual: cost_init_manual.value||'',
+    it: {
+      route_type: it_route_type.value||'Boucle',
+      theme: it_theme.value||'',
+      length: it_length.value||'',
+      dplus: it_dplus.value||'',
+      dminus: it_dminus.value||'',
+      time: it_time.value||'',
+      public: it_public.value||'Grand public',
+      season: it_season.value||'Toute l’année',
+      direction: it_direction.value||'',
+      com: it_com.value||''
+    },
+    env: {
+      zones: selMulti(env_zones),
+      enjeux: selMulti(enjeux),
+      enjeux_com: enjeux_com.value||'',
+      constraints: env_constraints.value||'',
+      procedures: env_procedures.value||'',
+      com: env_com.value||''
+    },
+    plan: {
+      short: plan_short.value||'',
+      mid: plan_mid.value||'',
+      phasage: plan_phasage.value||'',
+      com: plan_com.value||''
+    }
   };
 
   localStorage.setItem(KEY, JSON.stringify(S));
@@ -634,6 +787,33 @@ function loadAll(){
   dec_com.value = S.bureau?.arg||'';
   tour_pot.value = S.bureau?.tour_pot||'Moyen';
   cost_init_manual.value = S.bureau?.cost_init_manual||'';
+
+  // bureau - caractéristiques itinéraire
+  it_route_type.value = S.bureau?.it?.route_type||'Boucle';
+  it_theme.value = S.bureau?.it?.theme||'';
+  it_length.value = S.bureau?.it?.length||'';
+  it_dplus.value = S.bureau?.it?.dplus||'';
+  it_dminus.value = S.bureau?.it?.dminus||'';
+  it_time.value = S.bureau?.it?.time||'';
+  it_public.value = S.bureau?.it?.public||'Grand public';
+  it_season.value = S.bureau?.it?.season||'Toute l’année';
+  it_direction.value = S.bureau?.it?.direction||'';
+  it_com.value = S.bureau?.it?.com||'';
+
+  // bureau - environnement & réglementaire
+  setMulti(env_zones, S.bureau?.env?.zones||[]);
+  setMulti(enjeux, S.bureau?.env?.enjeux||[]);
+  enjeux_com.value = S.bureau?.env?.enjeux_com||'';
+  env_constraints.value = S.bureau?.env?.constraints||'';
+  env_procedures.value = S.bureau?.env?.procedures||'';
+  env_com.value = S.bureau?.env?.com||'';
+
+  // bureau - plan d’actions & phasage
+  plan_short.value = S.bureau?.plan?.short||'';
+  plan_mid.value = S.bureau?.plan?.mid||'';
+  plan_phasage.value = S.bureau?.plan?.phasage||'';
+  plan_com.value = S.bureau?.plan?.com||'';
+
 
   renderAllLists();
 }
@@ -697,82 +877,115 @@ function escapeXml(s){
 function bureauHTML(){
   const p=S.project||{};
   let h=`<!doctype html><meta charset="utf-8"><title>Fiche projet itinéraire</title>
-  <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px} .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0} img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}</style>`;
+  <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
+  .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
+  img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}</style>`;
+
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
   h+=`<p><strong>Participants :</strong> ${escapeXml(p.part1||'')} / ${escapeXml(p.part2||'')}</p>`;
   if(p.com) h+=`<p>${escapeXml(p.com)}</p>`;
 
-  // Signalétique
+  // G — Caractéristiques
+  const it=S.bureau?.it||{};
+  h+=`<h2>Caractéristiques de l’itinéraire</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Type de parcours : ${escapeXml(it.route_type||'')}</li>
+    <li>Thème principal : ${escapeXml(it.theme||'')}</li>
+    <li>Longueur : ${escapeXml(it.length||'')} km</li>
+    <li>Dénivelé + : ${escapeXml(it.dplus||'')} m</li>
+    <li>Dénivelé – : ${escapeXml(it.dminus||'')} m</li>
+    <li>Temps estimé : ${escapeXml(it.time||'')}</li>
+    <li>Public cible : ${escapeXml(it.public||'')}</li>
+    <li>Saisonnalité : ${escapeXml(it.season||'')}</li>
+    <li>Sens conseillé : ${escapeXml(it.direction||'')}</li>
+  </ul>${it.com?`<p>${escapeXml(it.com)}</p>`:''}</div>`;
+
+  // H — Enjeux & contraintes + environnement/réglementaire
+  const env=S.bureau?.env||{};
+  h+=`<h2>Enjeux & contraintes (environnement & réglementaire)</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Enjeux : ${escapeXml((env.enjeux||[]).join(', '))}</li>
+    <li>Zonages traversés : ${escapeXml((env.zones||[]).join(', '))}</li>
+  </ul>
+  ${env.enjeux_com?`<p><strong>Commentaires enjeux :</strong> ${escapeXml(env.enjeux_com)}</p>`:''}
+  ${env.constraints?`<p><strong>Contraintes :</strong> ${escapeXml(env.constraints)}</p>`:''}
+  ${env.procedures?`<p><strong>Procédures / vigilances :</strong> ${escapeXml(env.procedures)}</p>`:''}
+  ${env.com?`<p>${escapeXml(env.com)}</p>`:''}
+  </div>`;
+
+  // I — Plan d’actions & phasage
+  const plan=S.bureau?.plan||{};
+  h+=`<h2>Plan d’actions & phasage</h2>`;
+  h+=`<div class="card">
+    ${plan.short?`<p><strong>Court terme :</strong><br>${escapeXml(plan.short)}</p>`:''}
+    ${plan.mid?`<p><strong>Moyen terme :</strong><br>${escapeXml(plan.mid)}</p>`:''}
+    ${plan.phasage?`<p><strong>Phasage :</strong><br>${escapeXml(plan.phasage)}</p>`:''}
+    ${plan.com?`<p>${escapeXml(plan.com)}</p>`:''}
+  </div>`;
+
+  // Terrain — Signalétique
   h+=`<h2>Signalétique</h2>`;
-  S.sig.forEach((o,i)=>{
+  (S.sig||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Signalétique ${i+1}</strong><ul>
       <li>Type : ${escapeXml(o.type||'')}</li>
       <li>Style : ${escapeXml(o.style||'')}</li>
       <li>Action : ${escapeXml(o.action||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
   });
 
-  // Balisage
+  // Terrain — Balisage
   h+=`<h2>Balisage</h2>`;
   h+=`<div class="card"><strong>Global</strong><ul>
-    <li>Types : ${(S.bal.types||[]).map(escapeXml).join(', ')}</li>
-    <li>Action : ${escapeXml(S.bal.action_global||'')}</li>
-  </ul><div>${escapeXml(S.bal.com_global||'')}</div></div>`;
-  (S.bal.sections||[]).forEach((o,i)=>{
+    <li>Types : ${(S.bal?.types||[]).map(escapeXml).join(', ')}</li>
+    <li>Action : ${escapeXml(S.bal?.action_global||'')}</li>
+  </ul>${S.bal?.com_global?`<div>${escapeXml(S.bal.com_global||'')}</div>`:''}</div>`;
+  (S.bal?.sections||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Section ${i+1}</strong><ul>
       <li>Action : ${escapeXml(o.action||'')}</li>
       <li>Linéaire : ${escapeXml(o.linear||'')}</li>
       <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul></div>`;
   });
 
-  // Travaux
+  // Terrain — Travaux
   h+=`<h2>Travaux de réouverture</h2>`;
-  S.trav.forEach((o,i)=>{
+  (S.trav||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Travail ${i+1}</strong><ul>
       <li>Type : ${escapeXml(o.type||'')}</li>
       <li>Linéaire : ${escapeXml(o.linear||'')}</li>
       <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
       ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
   });
 
-  // Entretien
+  // Terrain — Entretien
   h+=`<h2>Entretien annuel estimé</h2>`;
   h+=`<div class="card"><ul>
-    <li>Volume : ${escapeXml(S.ent.jh||'')}</li>
-    <li>Nature : ${(S.ent.nat||[]).map(escapeXml).join(', ')}</li>
-  </ul><div>${escapeXml(S.ent.com||'')}</div></div>`;
+    <li>Volume : ${escapeXml(S.ent?.jh||'')}</li>
+    <li>Nature : ${(S.ent?.nat||[]).map(escapeXml).join(', ')}</li>
+  </ul>${S.ent?.com?`<div>${escapeXml(S.ent.com||'')}</div>`:''}</div>`;
 
-  // Points sensibles
+  // Terrain — Points sensibles
   h+=`<h2>Points sensibles</h2>`;
-  S.sens.forEach((o,i)=>{
+  (S.sens||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Point sensible ${i+1}</strong><ul>
       <li>Catégorie : ${escapeXml(o.cat||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
       ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
   });
 
-  // Décision
+  // K — Décision
   h+=`<h2>Décision & arbitrage</h2>`;
-  const autoCost = (Number(document.getElementById('cost_init_auto').innerText)||0);
-  const manualCost = S.bureau.cost_init_manual ? Number(S.bureau.cost_init_manual||0) : null;
   h+=`<div class="card"><ul>
-    <li>Intérêt : ${escapeXml(S.bureau.interest||'')}</li>
-    <li>Décision : ${escapeXml(S.bureau.decision||'')}</li>
-    <li>Mise en tourisme : ${escapeXml(S.bureau.tour_pot||'')}</li>
-    <li>Coût initial (auto) : ${autoCost} €</li>
-    <li>Coût initial (manuel) : ${manualCost!=null ? manualCost+' €' : '—'}</li>
-    <li>Entretien annuel : ${escapeXml(S.ent.jh||'')} JH/an</li>
-  </ul><div>${escapeXml(S.bureau.arg||'')}</div></div>`;
+    <li>Intérêt : ${escapeXml(S.bureau?.interest||'')}</li>
+    <li>Décision : ${escapeXml(S.bureau?.decision||'')}</li>
+    <li>Potentiel mise en tourisme : ${escapeXml(S.bureau?.tour_pot||'')}</li>
+    <li>Entretien annuel : ${escapeXml(S.ent?.jh||'')} JH/an</li>
+  </ul>${S.bureau?.arg?`<div>${escapeXml(S.bureau.arg||'')}</div>`:''}</div>`;
 
   return h;
 }
