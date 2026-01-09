@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V14)</title>
+<title>PWA – Fiche projet itinéraire (V15)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -52,8 +52,8 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
 /* V13.2 – objets plus lisibles */
-details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px}
-details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:#fff;border-radius:10px}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);padding:10px;border-radius:10px;}
 /* flash focus */
 .flash{animation:flashBg 1.2s ease-in-out 1}
 @keyframes flashBg{
@@ -64,10 +64,12 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 }
 
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+
+.bureau-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 0}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V14 (caméra + galerie)</h1></header>
+<header><h1>Fiche projet itinéraire – V15 (outils bureau + visuel enfants + export sans heure)</h1></header>
 
 <main>
 <!-- A -->
@@ -190,6 +192,11 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <details class="section bureau-section" data-accordion="free">
   <summary>G. Caractéristiques de l’itinéraire <span class="badge bureau">bureau</span></summary>
   <div class="sec">
+    <div class="bureau-tools">
+      <button class="ghost" type="button" onclick="expandBureau(true)">⬇ Tout déplier (bureau)</button>
+      <button class="ghost" type="button" onclick="expandBureau(false)">⬆ Tout replier (bureau)</button>
+    </div>
+
     <div class="row2">
       <div>
         <label>Type de parcours</label>
@@ -365,7 +372,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"14"},
+  meta:{version:"15"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -485,11 +492,23 @@ function onDetailsToggle(e){
 document.addEventListener('toggle', onDetailsToggle, true);
 
 
+function expandBureau(open){
+  document.querySelectorAll('details.section.bureau-section').forEach(d=>{
+    d.open = !!open;
+  });
+  if(open){
+    // scroll to first opened bureau section for convenience (desktop)
+    const first = document.querySelector('details.section.bureau-section');
+    if(first) first.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+
 
 function nowStamp(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
-  return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes());
+  return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
 }
 
 function updateDerived(){
@@ -1011,7 +1030,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V14"
+`<gpx version="1.1" creator="FicheItineraireAPN_V15"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1048,15 +1067,15 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V14)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V15)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
 /* V13.2 – objets plus lisibles */
-details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px}
-details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:#fff;border-radius:10px}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);padding:10px;border-radius:10px;}
 /* flash focus */
 .flash{animation:flashBg 1.2s ease-in-out 1}
 @keyframes flashBg{
@@ -1067,6 +1086,8 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 }
 
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+
+.bureau-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 0}
 </style>`;
 
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
