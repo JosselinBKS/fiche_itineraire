@@ -48,6 +48,20 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   .row2,.row3{grid-template-columns:1fr}
   .footer .row{grid-template-columns:1fr 1fr}
 }
+
+.gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
+
+/* V13.2 – objets plus lisibles */
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
+/* flash focus */
+.flash{animation:flashBg 1.2s ease-in-out 1}
+@keyframes flashBg{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+  20%{box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+  60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+}
 </style>
 </head>
 <body>
@@ -55,7 +69,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 
 <main>
 <!-- A -->
-<details class="section" open>
+<details class="section" data-accordion="one" open>
   <summary>A. Identification <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Nom provisoire / code de l’itinéraire</label>
@@ -89,7 +103,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- B -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>B. Signalétique <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSig()">➕ Ajouter une signalétique</button>
@@ -99,7 +113,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- C -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>C. Balisage <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Types de balisage rencontrés (multi-choix)</label>
@@ -125,7 +139,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- D -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>D. Travaux de réouverture <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addTrav()">➕ Ajouter un travail</button>
@@ -135,7 +149,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- E -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>E. Entretien annuel estimé <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <div class="row2">
@@ -161,7 +175,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 </details>
 
 <!-- F -->
-<details class="section">
+<details class="section" data-accordion="one">
   <summary>F. Points sensibles / problématiques de tronçons <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSens()">➕ Ajouter un point sensible</button>
@@ -169,8 +183,129 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   </div>
 </details>
 
+
+<!-- G -->
+<details class="section bureau-section" data-accordion="free">
+  <summary>G. Caractéristiques de l’itinéraire <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <div class="row2">
+      <div>
+        <label>Type de parcours</label>
+        <select id="it_route_type">
+          <option>Boucle</option>
+          <option>Aller-retour</option>
+          <option>Itinérance</option>
+        </select>
+      </div>
+      <div>
+        <label>Thème principal</label>
+        <input id="it_theme" placeholder="ex : patrimoine, lac, pastoralisme…">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div>
+        <label>Longueur (km)</label>
+        <input id="it_length" type="number" step="0.1" min="0">
+      </div>
+      <div>
+        <label>Dénivelé + (m)</label>
+        <input id="it_dplus" type="number" step="10" min="0">
+      </div>
+      <div>
+        <label>Dénivelé – (m)</label>
+        <input id="it_dminus" type="number" step="10" min="0">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div>
+        <label>Temps estimé</label>
+        <input id="it_time" placeholder="ex : 3h30">
+      </div>
+      <div>
+        <label>Public cible</label>
+        <select id="it_public">
+          <option>Familial</option>
+          <option>Grand public</option>
+          <option>Randonneur confirmé</option>
+        </select>
+      </div>
+      <div>
+        <label>Saisonnalité</label>
+        <select id="it_season">
+          <option>Toute l’année</option>
+          <option>Hors neige</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Sens conseillé</label>
+    <input id="it_direction" placeholder="ex : sens horaire conseillé…">
+
+    <label>Commentaires libres</label>
+    <textarea id="it_com"></textarea>
+  </div>
+</details>
+
+<!-- H -->
+<details class="section bureau-section" data-accordion="free">
+  <summary>H. Contraintes environnementales & réglementaires <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <label>Espaces / zonages traversés</label>
+    <select id="env_zones" multiple>
+      <option>Natura 2000</option>
+      <option>Site classé / inscrit</option>
+      <option>Réserve naturelle</option>
+      <option>ENS</option>
+      <option>Forêt domaniale / ONF</option>
+      <option>Autres</option>
+    </select>
+
+    <hr>
+    <label>Enjeux identifiés (multi-choix)</label>
+    <select id="enjeux" multiple>
+      <option>Risque de chutes de blocs</option>
+      <option>Crues / aléas hydrauliques</option>
+      <option>Érosion des sentiers</option>
+      <option>Pastoralisme</option>
+      <option>Chasse</option>
+      <option>Autres</option>
+    </select>
+
+    <label>Commentaires complémentaires (enjeux & contraintes)</label>
+    <textarea id="enjeux_com"></textarea>
+
+
+    <label>Contraintes environnementales identifiées</label>
+    <textarea id="env_constraints" placeholder="ex : périodes de quiétude, habitats sensibles, adaptations…"></textarea>
+
+    <label>Procédures / vigilances pressenties</label>
+    <textarea id="env_procedures" placeholder="ex : évaluation d’incidences, avis partenaires, mesures d’évitement…"></textarea>
+</div>
+</details>
+
+<!-- I -->
+<details class="section bureau-section" data-accordion="free">
+  <summary>I. Plan d’actions & phasage <span class="badge bureau">bureau</span></summary>
+  <div class="sec">
+    <label>Actions prioritaires (court terme)</label>
+    <textarea id="plan_short"></textarea>
+
+    <label>Actions à moyen terme</label>
+    <textarea id="plan_mid"></textarea>
+
+    <label>Phasage prévisionnel</label>
+    <textarea id="plan_phasage"></textarea>
+
+    <label>Commentaires</label>
+    <textarea id="plan_com"></textarea>
+  </div>
+</details>
+
+
 <!-- K -->
-<details class="section">
+<details class="section bureau-section" data-accordion="free">
   <summary>K. Décision & arbitrage <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <div class="row3">
@@ -233,14 +368,16 @@ let S = {
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
   trav:[],
-  ent:{jh:"", nat:[], com:""},
+  ent:{jh:"", nat:[]},
   sens:[],
-  bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:""}
+  bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:"",
+  it:{route_type:"Boucle", theme:"", length:"", dplus:"", dminus:"", time:"", public:"Grand public", season:"Toute l’année", direction:""},
+  env:{zones:[], enjeux:[], enjeux_com:"", constraints:"", procedures:""},
+  plan:{short:"", mid:"", phasage:""}}
 };
 
-const KEY="pwa_itin_v1_7";
-
-// --- V13.2: preserve open details across rerender + keep focus (GPS/photo) ---
+const KEY="pwa_itin_v1_8";
+// --- V13.2: preserve open details across rerender + keep focus (GPS/photo/delete) ---
 let __focusId = null;
 function captureOpenDetails(){
   return Array.from(document.querySelectorAll('details[open][id]')).map(d=>d.id);
@@ -251,6 +388,7 @@ function restoreOpenDetails(ids){
 function focusById(id){
   const el=document.getElementById(id);
   if(!el) return;
+  // open parent chain
   let p=el.parentElement;
   while(p){
     if(p.tagName==='DETAILS') p.open=true;
@@ -270,6 +408,74 @@ function setMulti(el, values){
   [...el.options].forEach(o=>o.selected=set.has(o.value));
 }
 
+// -------------------- ACCORDÉON (SECTIONS + OBJETS) --------------------
+function closeOtherSections(active){
+  // Close only exclusive (terrain) sections; keep bureau sections open
+  if(active?.dataset?.accordion === 'free') return;
+  document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
+    if(s!==active) s.open=false;
+  });
+}
+function closeSiblingItems(d){
+  const list = d.closest('.item')?.parentElement;
+  if(!list) return;
+  list.querySelectorAll('.item details').forEach(x=>{
+    if(x!==d) x.open=false;
+  });
+}
+
+
+function focusItem(listEl, idx){
+  requestAnimationFrame(()=>{
+    const section = listEl.closest('details.section');
+    if(section){
+      section.open=true;
+      // only enforce closing for exclusive sections
+      if(section.dataset.accordion !== 'free'){
+        closeOtherSections(section);
+        // close items in other terrain sections
+        document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
+          if(s!==section) s.querySelectorAll('.item details').forEach(x=>x.open=false);
+        });
+      }
+    }
+    const d = listEl.querySelectorAll('.item details')[idx];
+    if(d){
+      d.open=true;
+      closeSiblingItems(d);
+      // flash + note
+      d.classList.add('flash');
+      setTimeout(()=>d.classList.remove('flash'), 1300);
+      d.scrollIntoView({behavior:'smooth', block:'start'});
+      window.scrollBy(0,-8);
+    }
+  });
+}
+
+function onDetailsToggle(e){
+  const d = e.target;
+  if(!(d instanceof HTMLDetailsElement) || !d.open) return;
+
+  // Top-level sections
+  if(d.classList.contains('section')){
+    // bureau sections: do not close others
+    if(d.dataset.accordion === 'free') return;
+
+    closeOtherSections(d);
+    // close items in other (terrain) sections only
+    document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
+      if(s!==d) s.querySelectorAll('.item details').forEach(x=>x.open=false);
+    });
+    return;
+  }
+
+  // Item details: exclusive within the same list
+  closeSiblingItems(d);
+}
+document.addEventListener('toggle', onDetailsToggle, true);
+
+
+
 function nowStamp(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
@@ -281,7 +487,7 @@ function updateDerived(){
   ent_jh_copy.value = ent_jh.value || "";
   // auto cost = sum of costs from signalétique + travaux + points sensibles + balisage sections (if filled)
   const sum = (arr, field) => arr.reduce((a,o)=>a+(Number(o[field]||0)||0),0);
-  const auto = sum(S.sig,'cost') + sum(S.trav,'cost') + sum(S.sens,'cost') + sum(S.bal.sections,'cost');
+  const auto = sum(S.trav,'cost');
   document.getElementById('cost_init_auto').innerText = Math.round(auto);
 }
 
@@ -323,7 +529,6 @@ function addPhotoGrid(containerId, listRef, idx){
   });
 }
 
-
 function delPhoto(containerId, idx, pi){
   let arr=null, kind=null;
   if(containerId.startsWith('sigPhotos_')){ arr=S.sig; kind='sig'; }
@@ -353,7 +558,7 @@ function renderAllLists(){
   S.sig.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
+      <details class="obj" id="sig_${i}">
         <summary>Signalétique n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <div class="row2">
@@ -382,13 +587,11 @@ function renderAllLists(){
               </select>
             </div>
             <div>
-              <label>Coût estimé (optionnel – €)</label>
-              <input type="number" min="0" step="50" value="${o.cost||''}" oninput="S.sig[${i}].cost=this.value; updateDerived();">
-            </div>
-          </div>
+              </div>
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo; saveAll(false); __focusId='sig_'+${i}; renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delItem('sig', ${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -410,8 +613,8 @@ function renderAllLists(){
   S.bal.sections.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
-        <summary>Balisage n°${i+1}</summary>
+      <details class="obj" id="bal_${i}">
+        <summary>Section n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <div class="row3">
             <div>
@@ -435,17 +638,11 @@ function renderAllLists(){
 
           <div class="row2">
             <div>
-              <label>Coût estimé (optionnel – €)</label>
-              <input type="number" min="0" step="50" value="${o.cost||''}" oninput="S.bal.sections[${i}].cost=this.value; updateDerived();">
-            </div>
-            <div>
-              <label>Commentaire</label>
-              <textarea oninput="S.bal.sections[${i}].comment=this.value">${o.comment||''}</textarea>
-            </div>
-          </div>
+              </div>
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.bal.sections[${i}].lat=la;S.bal.sections[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS (début)</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.bal.sections[${i}].lat=la;S.bal.sections[${i}].lon=lo; saveAll(false); __focusId='bal_'+${i}; renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS (début)"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delBalSec(${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -463,8 +660,8 @@ function renderAllLists(){
   S.trav.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
-        <summary>Travail n°${i+1}</summary>
+      <details class="obj" id="trav_${i}">
+        <summary>Travail n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <label>Type de travaux</label>
           <select onchange="S.trav[${i}].type=this.value">
@@ -488,16 +685,14 @@ function renderAllLists(){
               <input type="number" min="0" step="0.5" value="${o.jh||''}" oninput="S.trav[${i}].jh=this.value">
             </div>
             <div>
-              <label>Coût estimé (optionnel – €)</label>
-              <input type="number" min="0" step="50" value="${o.cost||''}" oninput="S.trav[${i}].cost=this.value; updateDerived();">
-            </div>
-          </div>
+              </div>
 
           <label>Précision (si “Autres”)</label>
           <input value="${o.other||''}" oninput="S.trav[${i}].other=this.value">
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS (début)</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo; saveAll(false); __focusId='trav_'+${i}; renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS (début)"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delItem('trav', ${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -518,8 +713,8 @@ function renderAllLists(){
   S.sens.forEach((o,i)=>{
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
-      <details open>
-        <summary>Point sensible n°${i+1}</summary>
+      <details class="obj" id="sens_${i}">
+        <summary>Point sensible n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <div class="row2">
             <div>
@@ -534,16 +729,14 @@ function renderAllLists(){
               </select>
             </div>
             <div>
-              <label>Coût estimé (optionnel – €)</label>
-              <input type="number" min="0" step="50" value="${o.cost||''}" oninput="S.sens[${i}].cost=this.value; updateDerived();">
-            </div>
-          </div>
+              </div>
 
           <label>Précision (si “Autres”)</label>
           <input value="${o.other||''}" oninput="S.sens[${i}].other=this.value">
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo; saveAll(false); __focusId='sens_'+${i}; renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delItem('sens', ${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -582,21 +775,33 @@ function onSigType(i, type, initializing=false){
 
 // Adders / deleters
 function addSig(){
-  S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],comment:'',cost:''});
-  saveAll(false); renderAllLists();
+  S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],comment:''});
+  const idx = S.sig.length-1;
+  saveAll(false);
+  __focusId = 'sig_' + idx;
+  renderAllLists();
 }
 function addBalSec(){
-  S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],comment:'',cost:''});
-  saveAll(false); renderAllLists();
+  S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],comment:''});
+  const idx = S.bal.sections.length-1;
+  saveAll(false);
+  __focusId = 'bal_' + idx;
+  renderAllLists();
 }
 function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
 function addTrav(){
-  S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],comment:'',cost:'',other:''});
-  saveAll(false); renderAllLists();
+  S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],comment:'',other:''});
+  const idx = S.trav.length-1;
+  saveAll(false);
+  __focusId = 'trav_' + idx;
+  renderAllLists();
 }
 function addSens(){
-  S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],comment:'',cost:'',other:''});
-  saveAll(false); renderAllLists();
+  S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],comment:'',other:''});
+  const idx = S.sens.length-1;
+  saveAll(false);
+  __focusId = 'sens_' + idx;
+  renderAllLists();
 }
 function delItem(kind, i){
   S[kind].splice(i,1);
@@ -614,8 +819,9 @@ function onPhotos(e, kind, idx){
       if(kind==='trav') S.trav[idx].photos.push(data);
       if(kind==='sens') S.sens[idx].photos.push(data);
       saveAll(false);
+      __focusId = (kind==='sig'?'sig_':kind==='bal'?'bal_':kind==='trav'?'trav_':'sens_') + idx;
       renderAllLists();
-    });
+      });
   });
 }
 
@@ -643,7 +849,32 @@ function saveAll(showToast=true){
     decision: dec_go.value,
     arg: dec_com.value||'',
     tour_pot: tour_pot.value,
-    cost_init_manual: cost_init_manual.value||''
+    cost_init_manual: cost_init_manual.value||'',
+    it: {
+      route_type: it_route_type.value||'Boucle',
+      theme: it_theme.value||'',
+      length: it_length.value||'',
+      dplus: it_dplus.value||'',
+      dminus: it_dminus.value||'',
+      time: it_time.value||'',
+      public: it_public.value||'Grand public',
+      season: it_season.value||'Toute l’année',
+      direction: it_direction.value||'',
+      com: it_com.value||''
+    },
+    env: {
+      zones: selMulti(env_zones),
+      enjeux: selMulti(enjeux),
+      enjeux_com: enjeux_com.value||'',
+      constraints: env_constraints.value||'',
+      procedures: env_procedures.value||''
+    },
+    plan: {
+      short: plan_short.value||'',
+      mid: plan_mid.value||'',
+      phasage: plan_phasage.value||'',
+      com: plan_com.value||''
+    }
   };
 
   localStorage.setItem(KEY, JSON.stringify(S));
@@ -679,6 +910,30 @@ function loadAll(){
   tour_pot.value = S.bureau?.tour_pot||'Moyen';
   cost_init_manual.value = S.bureau?.cost_init_manual||'';
 
+  // bureau - caractéristiques itinéraire
+  it_route_type.value = S.bureau?.it?.route_type||'Boucle';
+  it_theme.value = S.bureau?.it?.theme||'';
+  it_length.value = S.bureau?.it?.length||'';
+  it_dplus.value = S.bureau?.it?.dplus||'';
+  it_dminus.value = S.bureau?.it?.dminus||'';
+  it_time.value = S.bureau?.it?.time||'';
+  it_public.value = S.bureau?.it?.public||'Grand public';
+  it_season.value = S.bureau?.it?.season||'Toute l’année';
+  it_direction.value = S.bureau?.it?.direction||'';
+  it_com.value = S.bureau?.it?.com||'';
+
+  // bureau - environnement & réglementaire
+  setMulti(env_zones, S.bureau?.env?.zones||[]);
+  setMulti(enjeux, S.bureau?.env?.enjeux||[]);
+  enjeux_com.value = S.bureau?.env?.enjeux_com||'';
+  env_constraints.value = S.bureau?.env?.constraints||'';
+  env_procedures.value = S.bureau?.env?.procedures||'';  // bureau - plan d’actions & phasage
+  plan_short.value = S.bureau?.plan?.short||'';
+  plan_mid.value = S.bureau?.plan?.mid||'';
+  plan_phasage.value = S.bureau?.plan?.phasage||'';
+  plan_com.value = S.bureau?.plan?.com||'';
+
+
   renderAllLists();
 }
 
@@ -697,17 +952,42 @@ function resetAll(){
 
 // -------------------- EXPORT --------------------
 function gpxForPoints(points, prefix, descFieldFn){
-  let gpx='<?xml version="1.0" encoding="UTF-8"?>\\n<gpx version="1.1" creator="FicheItineraireV13.2">\\n';
+  // GPX 1.1 strict (QGIS-compatible)
+  // - Proper namespaces + schemaLocation
+  // - UTF-8 XML declaration
+  // - Waypoints only (wpt)
+  const header = `<?xml version="1.0" encoding="UTF-8"?>
+` +
+`<gpx version="1.1" creator="FicheItineraireAPN_V13_2"
+` +
+` xmlns="http://www.topografix.com/GPX/1/1"
+` +
+` xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+` +
+` xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+`;
+  let gpx = header;
+
   points.forEach((o,i)=>{
-    if(o.lat!=null && o.lon!=null){
+    const lat = (o && o.lat!=null) ? Number(o.lat) : null;
+    const lon = (o && o.lon!=null) ? Number(o.lon) : null;
+    if(Number.isFinite(lat) && Number.isFinite(lon)){
       const name = `${prefix}_${i+1}`;
-      const desc = (descFieldFn? descFieldFn(o,i):'') || '';
-      gpx += `<wpt lat="${o.lat}" lon="${o.lon}"><name>${escapeXml(name)}</name><desc>${escapeXml(desc)}</desc></wpt>\\n`;
+      const desc = (descFieldFn ? descFieldFn(o,i) : '') || '';
+      // Use '.' decimal separator and stable precision
+      gpx += `<wpt lat="${lat.toFixed(8)}" lon="${lon.toFixed(8)}">` +
+             `<name>${escapeXml(name)}</name>` +
+             `<desc>${escapeXml(desc)}</desc>` +
+             `</wpt>
+`;
     }
   });
-  gpx+='</gpx>\\n';
+
+  gpx += `</gpx>
+`;
   return gpx;
 }
+
 
 function escapeXml(s){
   return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&apos;");
@@ -716,82 +996,128 @@ function escapeXml(s){
 function bureauHTML(){
   const p=S.project||{};
   let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V13.2)</title>
-  <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px} .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0} img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}</style>`;
+  <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
+  .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
+  img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
+.gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
+
+/* V13.2 – objets plus lisibles */
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
+/* flash focus */
+.flash{animation:flashBg 1.2s ease-in-out 1}
+@keyframes flashBg{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+  20%{box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+  60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+}
+</style>`;
+
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
   h+=`<p><strong>Participants :</strong> ${escapeXml(p.part1||'')} / ${escapeXml(p.part2||'')}</p>`;
   if(p.com) h+=`<p>${escapeXml(p.com)}</p>`;
 
-  // Signalétique
+  // G — Caractéristiques
+  const it=S.bureau?.it||{};
+  h+=`<h2>Caractéristiques de l’itinéraire</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Type de parcours : ${escapeXml(it.route_type||'')}</li>
+    <li>Thème principal : ${escapeXml(it.theme||'')}</li>
+    <li>Longueur : ${escapeXml(it.length||'')} km</li>
+    <li>Dénivelé + : ${escapeXml(it.dplus||'')} m</li>
+    <li>Dénivelé – : ${escapeXml(it.dminus||'')} m</li>
+    <li>Temps estimé : ${escapeXml(it.time||'')}</li>
+    <li>Public cible : ${escapeXml(it.public||'')}</li>
+    <li>Saisonnalité : ${escapeXml(it.season||'')}</li>
+    <li>Sens conseillé : ${escapeXml(it.direction||'')}</li>
+  </ul>${it.com?`<p>${escapeXml(it.com)}</p>`:''}</div>`;
+
+  // H — Enjeux & contraintes + environnement/réglementaire
+  const env=S.bureau?.env||{};
+  h+=`<h2>Enjeux & contraintes (environnement & réglementaire)</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Enjeux : ${escapeXml((env.enjeux||[]).join(', '))}</li>
+    <li>Zonages traversés : ${escapeXml((env.zones||[]).join(', '))}</li>
+  </ul>
+  ${env.enjeux_com?`<p><strong>Commentaires enjeux :</strong> ${escapeXml(env.enjeux_com)}</p>`:''}
+  ${env.constraints?`<p><strong>Contraintes :</strong> ${escapeXml(env.constraints)}</p>`:''}
+  ${env.procedures?`<p><strong>Procédures / vigilances :</strong> ${escapeXml(env.procedures)}</p>`:''}
+</div>`;
+
+  // I — Plan d’actions & phasage
+  const plan=S.bureau?.plan||{};
+  h+=`<h2>Plan d’actions & phasage</h2>`;
+  h+=`<div class="card">
+    ${plan.short?`<p><strong>Court terme :</strong><br>${escapeXml(plan.short)}</p>`:''}
+    ${plan.mid?`<p><strong>Moyen terme :</strong><br>${escapeXml(plan.mid)}</p>`:''}
+    ${plan.phasage?`<p><strong>Phasage :</strong><br>${escapeXml(plan.phasage)}</p>`:''}
+    ${plan.com?`<p>${escapeXml(plan.com)}</p>`:''}
+  </div>`;
+
+  // Terrain — Signalétique
   h+=`<h2>Signalétique</h2>`;
-  S.sig.forEach((o,i)=>{
+  (S.sig||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Signalétique ${i+1}</strong><ul>
       <li>Type : ${escapeXml(o.type||'')}</li>
       <li>Style : ${escapeXml(o.style||'')}</li>
       <li>Action : ${escapeXml(o.action||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
   });
 
-  // Balisage
+  // Terrain — Balisage
   h+=`<h2>Balisage</h2>`;
   h+=`<div class="card"><strong>Global</strong><ul>
-    <li>Types : ${(S.bal.types||[]).map(escapeXml).join(', ')}</li>
-    <li>Action : ${escapeXml(S.bal.action_global||'')}</li>
-  </ul><div>${escapeXml(S.bal.com_global||'')}</div></div>`;
-  (S.bal.sections||[]).forEach((o,i)=>{
+    <li>Types : ${(S.bal?.types||[]).map(escapeXml).join(', ')}</li>
+    <li>Action : ${escapeXml(S.bal?.action_global||'')}</li>
+  </ul>${S.bal?.com_global?`<div>${escapeXml(S.bal.com_global||'')}</div>`:''}</div>`;
+  (S.bal?.sections||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Section ${i+1}</strong><ul>
       <li>Action : ${escapeXml(o.action||'')}</li>
       <li>Linéaire : ${escapeXml(o.linear||'')}</li>
       <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul></div>`;
   });
 
-  // Travaux
+  // Terrain — Travaux
   h+=`<h2>Travaux de réouverture</h2>`;
-  S.trav.forEach((o,i)=>{
+  (S.trav||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Travail ${i+1}</strong><ul>
       <li>Type : ${escapeXml(o.type||'')}</li>
       <li>Linéaire : ${escapeXml(o.linear||'')}</li>
       <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
       ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
   });
 
-  // Entretien
+  // Terrain — Entretien
   h+=`<h2>Entretien annuel estimé</h2>`;
   h+=`<div class="card"><ul>
-    <li>Volume : ${escapeXml(S.ent.jh||'')}</li>
-    <li>Nature : ${(S.ent.nat||[]).map(escapeXml).join(', ')}</li>
-  </ul><div>${escapeXml(S.ent.com||'')}</div></div>`;
+    <li>Volume : ${escapeXml(S.ent?.jh||'')}</li>
+    <li>Nature : ${(S.ent?.nat||[]).map(escapeXml).join(', ')}</li>
+  </ul>${S.ent?.com?`<div>${escapeXml(S.ent.com||'')}</div>`:''}</div>`;
 
-  // Points sensibles
+  // Terrain — Points sensibles
   h+=`<h2>Points sensibles</h2>`;
-  S.sens.forEach((o,i)=>{
+  (S.sens||[]).forEach((o,i)=>{
     h+=`<div class="card"><strong>Point sensible ${i+1}</strong><ul>
       <li>Catégorie : ${escapeXml(o.cat||'')}</li>
       <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
-      <li>Coût : ${escapeXml(o.cost||'')}</li>
       ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
-    </ul><div>${escapeXml(o.comment||'')}</div></div>`;
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
   });
 
-  // Décision
+  // K — Décision
   h+=`<h2>Décision & arbitrage</h2>`;
-  const autoCost = (Number(document.getElementById('cost_init_auto').innerText)||0);
-  const manualCost = S.bureau.cost_init_manual ? Number(S.bureau.cost_init_manual||0) : null;
   h+=`<div class="card"><ul>
-    <li>Intérêt : ${escapeXml(S.bureau.interest||'')}</li>
-    <li>Décision : ${escapeXml(S.bureau.decision||'')}</li>
-    <li>Mise en tourisme : ${escapeXml(S.bureau.tour_pot||'')}</li>
-    <li>Coût initial (auto) : ${autoCost} €</li>
-    <li>Coût initial (manuel) : ${manualCost!=null ? manualCost+' €' : '—'}</li>
-    <li>Entretien annuel : ${escapeXml(S.ent.jh||'')} JH/an</li>
-  </ul><div>${escapeXml(S.bureau.arg||'')}</div></div>`;
+    <li>Intérêt : ${escapeXml(S.bureau?.interest||'')}</li>
+    <li>Décision : ${escapeXml(S.bureau?.decision||'')}</li>
+    <li>Potentiel mise en tourisme : ${escapeXml(S.bureau?.tour_pot||'')}</li>
+    <li>Entretien annuel : ${escapeXml(S.ent?.jh||'')} JH/an</li>
+  </ul>${S.bureau?.arg?`<div>${escapeXml(S.bureau.arg||'')}</div>`:''}</div>`;
 
   return h;
 }
