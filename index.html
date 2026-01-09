@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V16.2PATCH2)</title>
+<title>PWA – Fiche projet itinéraire (V17.1)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -43,7 +43,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 .photo img{width:100%;border-radius:6px}
 .photo button{position:absolute;top:4px;right:4px;background:var(--danger);color:#fff;border:none;border-radius:999px;width:26px;height:26px}
 .footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px}
-.footer .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.footer .row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
 @media (max-width:720px){
   .row2,.row3{grid-template-columns:1fr}
   .footer .row{grid-template-columns:1fr 1fr}
@@ -78,7 +78,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V16.2PATCH2 (fix suppression audio projet)
+<header><h1>Fiche projet itinéraire – V17.1 (import ZIP/JSON + audios)
 
 <main>
 <!-- A -->
@@ -377,6 +377,8 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <div class="footer">
   <div class="row">
     <button class="ghost" onclick="saveAll()">💾 Sauvegarder</button>
+    <button class="ghost" onclick="document.getElementById('importFile').click()">📥 Import (ZIP/JSON)</button>
+    <input id="importFile" type="file" accept=".zip,application/zip,application/json,.json" onchange="importProject(event)" style="display:none">
     <button class="primary" onclick="exportZIP()">📦 Export ZIP (GPX + HTML + photos)</button>
     <button class="danger" onclick="resetAll()">🗑️ Réinitialiser</button>
   </div>
@@ -388,7 +390,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V16.2PATCH2"},
+  meta:{version:"V17.1"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1251,7 +1253,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V16.2PATCH2"
+`<gpx version="1.1" creator="FicheItineraireAPN_V17.1"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1288,7 +1290,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16.2PATCH2)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V17.1)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1518,6 +1520,191 @@ async function addAudiosFromObjects(arr, prefix){
     a.click();
   });
 }
+
+// -------------------- IMPORT (V17) --------------------
+async function importProject(event){
+  const file = event.target.files && event.target.files[0];
+  try{ event.target.value=''; }catch(_e){}
+  if(!file) return;
+
+  const name = (file.name||'').toLowerCase();
+
+  if(name.endsWith('.json') || file.type.includes('json')){
+    const txt = await file.text();
+    const data = JSON.parse(txt);
+    await applyImportedData(data, null);
+    alert("Import JSON terminé.");
+    return;
+  }
+
+  // ZIP
+  if(typeof JSZip==='undefined'){
+    alert("Import ZIP indisponible : JSZip non chargé (connexion requise).");
+    return;
+  }
+  const buf = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(buf);
+
+  // Prefer fiche_donnees.json
+  let jsonFile = zip.file("fiche_donnees.json") || zip.file("data.json") || null;
+  if(!jsonFile){
+    // fallback: first .json at root
+    const candidates = Object.keys(zip.files).filter(p=>p.toLowerCase().endsWith('.json'));
+    if(candidates.length) jsonFile = zip.file(candidates[0]);
+  }
+  if(!jsonFile){
+    alert("Aucun JSON trouvé dans le ZIP (attendu: fiche_donnees.json).");
+    return;
+  }
+  const jsonTxt = await jsonFile.async("string");
+  const data = JSON.parse(jsonTxt);
+
+  // Restore audios from /audios and map by naming convention
+  await restoreAudiosFromZip(zip, data);
+
+  // Restore photos from /photos (optional): we support the export format photos/PREFIX_i_j.jpg -> base64
+  await restorePhotosFromZip(zip, data);
+
+  await applyImportedData(data, zip);
+  alert("Import ZIP terminé.");
+}
+
+async function applyImportedData(data, zip){
+  // Replace state and persist
+  S = data;
+
+  // Normalize arrays to avoid crashes
+  S.sig = S.sig || [];
+  S.trav = S.trav || [];
+  S.sens = S.sens || [];
+  S.bal = S.bal || {types:[], action_global:"Maintien", com_global:"", sections:[]};
+  S.bal.sections = S.bal.sections || [];
+  S.ent = S.ent || {jh:"", nat:[], com:""};
+  S.bureau = S.bureau || {};
+  S.projectAudios = S.projectAudios || [];
+
+  // Ensure audios arrays exist on objects
+  S.sig.forEach(o=>o.audios = o.audios || []);
+  S.bal.sections.forEach(o=>o.audios = o.audios || []);
+  S.trav.forEach(o=>o.audios = o.audios || []);
+  S.sens.forEach(o=>o.audios = o.audios || []);
+
+  // Save and reload UI
+  localStorage.setItem(KEY, JSON.stringify(S));
+  loadAll(); // this also renders lists
+}
+
+function parseAudioName(path){
+  // audios/PROJET_1.ext or SIG_2_1.ext etc.
+  const base = path.split('/').pop();
+  const noExt = base.replace(/\.[^.]+$/, '');
+  const parts = noExt.split('_');
+  return {parts, ext: base.split('.').pop(), base};
+}
+
+async function restoreAudiosFromZip(zip, data){
+  // Reuse IDs present in the imported JSON (so IndexedDB lookup works).
+  data.projectAudios = data.projectAudios || [];
+  data.sig = data.sig || [];
+  data.trav = data.trav || [];
+  data.sens = data.sens || [];
+  data.bal = data.bal || {sections:[]};
+  data.bal.sections = data.bal.sections || [];
+
+  const files = Object.keys(zip.files).filter(p=>p.startsWith('audios/') && !zip.files[p].dir);
+
+  for(const p of files){
+    const info = parseAudioName(p); // e.g. PROJET_1, SIG_2_1
+    const blob = await zip.file(p).async('blob');
+    const mime = blob.type || ('audio/' + (info.ext||''));
+    const meta = {name: info.base, type:mime, size: blob.size||0, lastModified: Date.now()};
+
+    // Determine target ref list + index
+    const kind = info.parts[0];
+    if(kind === 'PROJET' && info.parts.length>=2){
+      const ai = Math.max(0, parseInt(info.parts[1],10)-1);
+      // ensure ref exists
+      while(data.projectAudios.length <= ai){
+        data.projectAudios.push({id: makeId('AUD'), name: '', type:mime, size:0});
+      }
+      const ref = data.projectAudios[ai];
+      if(!ref.id) ref.id = makeId('AUD');
+      // keep human name if already present (e.g. "voix...m4a"), otherwise use file name
+      if(!ref.name) ref.name = info.base;
+      ref.type = ref.type || mime;
+      ref.size = blob.size||0;
+
+      await idbPutAudio(ref.id, blob, meta);
+      continue;
+    }
+
+    if(['SIG','BAL','TRAV','SENS'].includes(kind) && info.parts.length>=3){
+      const i = Math.max(0, parseInt(info.parts[1],10)-1);
+      const ai = Math.max(0, parseInt(info.parts[2],10)-1);
+
+      let arr=null;
+      if(kind==='SIG') arr=data.sig;
+      if(kind==='BAL') arr=data.bal.sections;
+      if(kind==='TRAV') arr=data.trav;
+      if(kind==='SENS') arr=data.sens;
+      if(!arr || !arr[i]) continue;
+
+      arr[i].audios = arr[i].audios || [];
+      while(arr[i].audios.length <= ai){
+        arr[i].audios.push({id: makeId('AUD'), name:'', type:mime, size:0});
+      }
+      const ref = arr[i].audios[ai];
+      if(!ref.id) ref.id = makeId('AUD');
+      if(!ref.name) ref.name = info.base;
+      ref.type = ref.type || mime;
+      ref.size = blob.size||0;
+
+      await idbPutAudio(ref.id, blob, meta);
+    }
+  }
+}
+
+async function restorePhotosFromZip(zip, data){
+  // Restore photos to base64 arrays (compat with current app state)
+  const files = Object.keys(zip.files).filter(p=>p.startsWith('photos/') && !zip.files[p].dir);
+  // reset photos arrays if missing
+  data.sig = data.sig || [];
+  data.trav = data.trav || [];
+  data.sens = data.sens || [];
+  data.bal = data.bal || {sections:[]};
+  data.bal.sections = data.bal.sections || [];
+
+  for(const p of files){
+    const base = p.split('/').pop(); // SIG_1_1.jpg
+    const noExt = base.replace(/\.[^.]+$/, '');
+    const parts = noExt.split('_');
+    if(parts.length<3) continue;
+    const kind = parts[0];
+    const i = parseInt(parts[1],10)-1;
+
+    let arr=null;
+    if(kind==='SIG') arr=data.sig;
+    if(kind==='BAL') arr=data.bal.sections;
+    if(kind==='TRAV') arr=data.trav;
+    if(kind==='SENS') arr=data.sens;
+    if(!arr || !arr[i]) continue;
+
+    const blob = await zip.file(p).async('blob');
+    const b64 = await blobToDataURL(blob);
+    arr[i].photos = arr[i].photos || [];
+    arr[i].photos.push(b64);
+  }
+}
+
+function blobToDataURL(blob){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result);
+    r.onerror = ()=>reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
 
 // -------------------- INIT --------------------
 document.addEventListener('input', (e)=>{
