@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V15)</title>
+<title>PWA – Fiche projet itinéraire (V15.1)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -51,9 +51,9 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
-/* V13.2 – objets plus lisibles */
-details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:#fff;border-radius:10px}
-details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);padding:10px;border-radius:10px;}
+/* V15.1 – objets plus lisibles (sans impact taille) */
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:var(--item)}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 /* flash focus */
 .flash{animation:flashBg 1.2s ease-in-out 1}
 @keyframes flashBg{
@@ -69,7 +69,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V15 (outils bureau + visuel enfants + export sans heure)</h1></header>
+<header><h1>Fiche projet itinéraire – V15.1 (scroll balisage + titres courts + enfants gris léger)</h1></header>
 
 <main>
 <!-- A -->
@@ -180,7 +180,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);
 
 <!-- F -->
 <details class="section" data-accordion="one">
-  <summary>F. Points sensibles / problématiques de tronçons <span class="badge terrain">terrain</span></summary>
+  <summary>F. Points sensibles & pb de tronçons <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSens()">➕ Ajouter un point sensible</button>
     <div id="sens_list"></div>
@@ -259,7 +259,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);
 
 <!-- H -->
 <details class="section bureau-section" data-accordion="free">
-  <summary>H. Contraintes environnementales & réglementaires <span class="badge bureau">bureau</span></summary>
+  <summary>H. Contraintes (nature & règles) <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <label>Espaces / zonages traversés</label>
     <select id="env_zones" multiple>
@@ -372,7 +372,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"15"},
+  meta:{version:"15.1"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -479,6 +479,7 @@ function onDetailsToggle(e){
     if(d.dataset.accordion === 'free') return;
 
     closeOtherSections(d);
+    if(__userToggledSection === d) scrollSectionToTop(d);
     // close items in other (terrain) sections only
     document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
       if(s!==d) s.querySelectorAll('.item details').forEach(x=>x.open=false);
@@ -490,6 +491,29 @@ function onDetailsToggle(e){
   closeSiblingItems(d);
 }
 document.addEventListener('toggle', onDetailsToggle, true);
+
+
+// --- V15.1: improve scroll position when user opens a section (avoid "too low") ---
+let __userToggledSection = null;
+document.addEventListener('click', (e)=>{
+  const t = e.target;
+  if(t && t.tagName === 'SUMMARY'){
+    const d = t.parentElement;
+    if(d && d.classList && d.classList.contains('section')){
+      __userToggledSection = d;
+      setTimeout(()=>{ __userToggledSection = null; }, 800);
+    }
+  }
+}, true);
+
+function scrollSectionToTop(detailsEl){
+  const headerEl = document.querySelector('header');
+  const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0;
+  const sum = detailsEl.querySelector(':scope > summary');
+  if(!sum) return;
+  const y = window.scrollY + sum.getBoundingClientRect().top - headerH - 6;
+  window.scrollTo({top: y < 0 ? 0 : y, behavior:'smooth'});
+}
 
 
 function expandBureau(open){
@@ -1030,7 +1054,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V15"
+`<gpx version="1.1" creator="FicheItineraireAPN_V15_1"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1067,15 +1091,15 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V15)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V15.1)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
-/* V13.2 – objets plus lisibles */
-details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:#fff;border-radius:10px}
-details.obj > summary{font-weight:900;font-style:italic;background:var(--item2);padding:10px;border-radius:10px;}
+/* V15.1 – objets plus lisibles (sans impact taille) */
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:var(--item)}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 /* flash focus */
 .flash{animation:flashBg 1.2s ease-in-out 1}
 @keyframes flashBg{
