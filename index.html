@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V18.1)</title>
+<title>PWA – Fiche projet itinéraire (V18.2)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -78,7 +78,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V18.1 (audio import clarifié + enregistrement objets)
+<header><h1>Fiche projet itinéraire – V18.2 (import ZIP + fix photos)
 
 <main>
 <!-- A -->
@@ -377,7 +377,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <div class="footer">
   <div class="row">
     <button class="ghost" onclick="saveAll()">💾 Sauvegarder</button>
-    <button class="ghost" onclick="document.getElementById('importFile').click()">📥 Import (ZIP/JSON)</button>
+    <button class="ghost" onclick="document.getElementById('importFile').click()">📥 Import (ZIP)</button>
     <input id="importFile" type="file" accept=".zip,application/zip,application/json,.json" onchange="importProject(event)" style="display:none">
     <button class="primary" onclick="exportZIP()">📦 Export ZIP (GPX + HTML + médias)</button>
     <button class="danger" onclick="resetAll()">🗑️ Réinitialiser</button>
@@ -390,7 +390,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V18.1"},
+  meta:{version:"V18.2"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1294,7 +1294,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V18.1)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V18.2)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1691,13 +1691,21 @@ async function restoreAudiosFromZip(zip, data){
 
 async function restorePhotosFromZip(zip, data){
   // Restore photos to base64 arrays (compat with current app state)
+  // Important: the JSON already contains photos as dataURL. During ZIP import we prefer the ZIP folder photos/
+  // to avoid duplicates => we reset photos arrays before pushing.
   const files = Object.keys(zip.files).filter(p=>p.startsWith('photos/') && !zip.files[p].dir);
-  // reset photos arrays if missing
+
   data.sig = data.sig || [];
   data.trav = data.trav || [];
   data.sens = data.sens || [];
   data.bal = data.bal || {sections:[]};
   data.bal.sections = data.bal.sections || [];
+
+  // reset
+  data.sig.forEach(o=>o.photos = []);
+  data.trav.forEach(o=>o.photos = []);
+  data.sens.forEach(o=>o.photos = []);
+  data.bal.sections.forEach(o=>o.photos = []);
 
   for(const p of files){
     const base = p.split('/').pop(); // SIG_1_1.jpg
