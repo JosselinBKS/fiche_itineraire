@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V18.2)</title>
+<title>PWA – Fiche projet itinéraire (1.9.0)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -44,6 +44,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 .photo button{position:absolute;top:4px;right:4px;background:var(--danger);color:#fff;border:none;border-radius:999px;width:26px;height:26px}
 .footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px}
 .footer .row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.footer button .small{display:block;font-size:.78rem;line-height:1.05}
 @media (max-width:720px){
   .row2,.row3{grid-template-columns:1fr}
   .footer .row{grid-template-columns:1fr 1fr}
@@ -78,7 +79,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V18.2 (import ZIP + fix photos)
+<header><h1>Fiche projet itinéraire – 1.9.0
 
 <main>
 <!-- A -->
@@ -379,7 +380,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
     <button class="ghost" onclick="saveAll()">💾 Sauvegarder</button>
     <button class="ghost" onclick="document.getElementById('importFile').click()">📥 Import (ZIP)</button>
     <input id="importFile" type="file" accept=".zip,application/zip,application/json,.json" onchange="importProject(event)" style="display:none">
-    <button class="primary" onclick="exportZIP()">📦 Export ZIP (GPX + HTML + médias)</button>
+    <button class="primary" onclick="exportZIP()">📦 Export ZIP<br><span class="small">(GPX + HTML + médias)</span></button>
     <button class="danger" onclick="resetAll()">🗑️ Réinitialiser</button>
   </div>
 </div>
@@ -390,7 +391,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V18.2"},
+  meta:{version:"1.9.0"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1294,7 +1295,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V18.2)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.9.0)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
