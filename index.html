@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V15.1)</title>
+<title>PWA – Fiche projet itinéraire (V16)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -52,7 +52,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
 /* V15.1 – objets plus lisibles (sans impact taille) */
-details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:var(--item)}
+details.obj{margin:10px 0 12px 14px;border-left:2px solid var(--line);padding-left:8px;background:var(--item)}
 details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 /* flash focus */
 .flash{animation:flashBg 1.2s ease-in-out 1}
@@ -66,10 +66,17 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 
 .bureau-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 0}
+
+.audios{display:grid;gap:8px;margin-top:8px}
+.audio-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+.audio-item .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.audio-item .name{font-size:.9rem}
+.audio-item audio{width:100%;margin-top:6px}
+.audio-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V15.1 (scroll balisage + titres courts + enfants gris léger)</h1></header>
+<header><h1>Fiche projet itinéraire – V16 (pièces jointes audio)</h1></header>
 
 <main>
 <!-- A -->
@@ -103,6 +110,15 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
     </div>
     <label>Commentaire général</label>
     <textarea id="p_com"></textarea>
+
+    <label>Audios (projet)</label>
+    <div class="audio-actions">
+      <button class="primary" type="button" onclick="document.getElementById('projAudioRec').click()">🎙️ Enregistrer</button>
+      <button class="ghost" type="button" onclick="document.getElementById('projAudioPick').click()">📎 Choisir fichier</button>
+    </div>
+    <input id="projAudioRec" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'project', 0)" style="display:none">
+    <input id="projAudioPick" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'project', 0)" style="display:none">
+    <div class="audios" id="projAudios"></div>
   </div>
 </details>
 
@@ -372,8 +388,9 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"15.1"},
+  meta:{version:"16"},
   project:{},
+  projectAudios:[],
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
   trav:[],
@@ -386,6 +403,59 @@ let S = {
 };
 
 const KEY="pwa_itin_v1_8";
+
+// --- V16: IndexedDB media store for AUDIO (avoid bloating localStorage) ---
+const MEDIA_DB = 'pwa_itin_media_v1';
+const MEDIA_STORE = 'audio';
+function openMediaDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(MEDIA_DB, 1);
+    req.onupgradeneeded = (e)=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(MEDIA_STORE)){
+        db.createObjectStore(MEDIA_STORE, {keyPath:'id'});
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function idbPutAudio(id, blob, meta){
+  const db = await openMediaDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction([MEDIA_STORE],'readwrite');
+    tx.objectStore(MEDIA_STORE).put({id, blob, meta});
+    tx.oncomplete = ()=>resolve(true);
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function idbGetAudio(id){
+  const db = await openMediaDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction([MEDIA_STORE],'readonly');
+    const req = tx.objectStore(MEDIA_STORE).get(id);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function idbDelAudio(id){
+  const db = await openMediaDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction([MEDIA_STORE],'readwrite');
+    tx.objectStore(MEDIA_STORE).delete(id);
+    tx.oncomplete = ()=>resolve(true);
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+function makeId(prefix){
+  // small unique id; ok for offline usage
+  return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+}
+function extFromMime(m){
+  const map = {'audio/webm':'webm','audio/ogg':'ogg','audio/mpeg':'mp3','audio/mp3':'mp3','audio/mp4':'m4a','audio/aac':'aac','audio/3gpp':'3gp','audio/wav':'wav','audio/x-wav':'wav'};
+  return map[m] || (m && m.includes('/') ? m.split('/')[1].replace('x-','') : 'audio');
+}
+
 // --- V13.2: preserve open details across rerender + keep focus (GPS/photo/delete) ---
 let __focusId = null;
 let __exclusiveFocusPrefix = null;
@@ -571,6 +641,82 @@ function resizePhoto(file, cb){
 }
 
 // -------------------- RENDER ITEMS --------------------
+async function renderAudioList(containerId, refs){
+  const cont = document.getElementById(containerId);
+  if(!cont) return;
+  cont.innerHTML = '';
+  const list = refs || [];
+  for(let ai=0; ai<list.length; ai++){
+    const ref = list[ai];
+    const card = document.createElement('div');
+    card.className = 'audio-item';
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'meta';
+    const nameSpan = document.createElement('div');
+    nameSpan.className = 'name';
+    nameSpan.textContent = ref.name || ('Audio ' + (ai+1));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'danger';
+    delBtn.type = 'button';
+    delBtn.textContent = '🗑️';
+    delBtn.style.width = 'auto';
+    delBtn.style.padding = '6px 10px';
+    delBtn.onclick = async ()=>{
+      await idbDelAudio(ref.id);
+      list.splice(ai,1);
+      saveAll(false);
+      __focusId = ref.__focusReturn || null;
+      renderAllLists(); // will restore focus if provided
+    };
+    metaDiv.appendChild(nameSpan);
+    metaDiv.appendChild(delBtn);
+    card.appendChild(metaDiv);
+
+    const rec = await idbGetAudio(ref.id);
+    if(rec && rec.blob){
+      const url = URL.createObjectURL(rec.blob);
+      const audio = document.createElement('audio');
+      audio.controls = true;
+      audio.src = url;
+      card.appendChild(audio);
+    }else{
+      const small = document.createElement('div');
+      small.className = 'small';
+      small.textContent = 'Fichier audio introuvable sur cet appareil (IndexedDB).';
+      card.appendChild(small);
+    }
+
+    cont.appendChild(card);
+  }
+}
+
+async function onAudioFiles(e, kind, idx){
+  const files = [...(e.target.files||[])];
+  if(!files.length) return;
+  try{ e.target.value=''; }catch(_e){}
+  for(const f of files){
+    const id = makeId('AUD');
+    const meta = {name:f.name || ('audio.'+extFromMime(f.type)), type:f.type||'', size:f.size||0, lastModified:f.lastModified||0};
+    await idbPutAudio(id, f, meta);
+    const ref = {id, name: meta.name, type: meta.type, size: meta.size};
+    if(kind === 'project'){
+      S.projectAudios = S.projectAudios || [];
+      ref.__focusReturn = null;
+      S.projectAudios.push(ref);
+    }else{
+      const arr = (kind==='sig')?S.sig:(kind==='bal')?S.bal.sections:(kind==='trav')?S.trav:S.sens;
+      arr[idx].audios = arr[idx].audios || [];
+      ref.__focusReturn = kind + '_' + idx;
+      arr[idx].audios.push(ref);
+    }
+  }
+  saveAll(false);
+  __focusId = (kind==='project') ? null : (kind + '_' + idx);
+  renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
+}
+
 function addPhotoGrid(containerId, listRef, idx){
   const cont=document.getElementById(containerId);
   cont.innerHTML="";
@@ -593,6 +739,8 @@ function delPhoto(containerId, idx, pi){
   saveAll(false);
   __focusId = kind + '_' + idx;
   renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
 }
 
 
@@ -657,6 +805,16 @@ function renderAllLists(){
           <input id="sigGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'sig', ${i})" style="display:none">
           <div class="photos" id="sigPhotos_${i}"></div>
 
+          <label>Audios</label>
+          <div class="audio-actions">
+            <button class="primary" type="button" onclick="document.getElementById('sigAudioRec_${i}').click()">🎙️ Enregistrer</button>
+            <button class="ghost" type="button" onclick="document.getElementById('sigAudioPick_${i}').click()">📎 Choisir fichier</button>
+          </div>
+          <input id="sigAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'sig', ${i})" style="display:none">
+          <input id="sigAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'sig', ${i})" style="display:none">
+          <div class="audios" id="sigAudios_${i}"></div>
+
+
           <label>Commentaire</label>
           <textarea oninput="S.sig[${i}].comment=this.value">${o.comment||''}</textarea>
         </div>
@@ -664,6 +822,10 @@ function renderAllLists(){
     sig_list.appendChild(wrap);
     onSigType(i, o.type||'Directionnelle', true);
     addPhotoGrid(`sigPhotos_${i}`, S.sig, i);
+    // audios
+    S.sig[i].audios = S.sig[i].audios || [];
+    S.sig[i].audios.forEach(a=>a.__focusReturn='sig_'+i);
+    renderAudioList(`sigAudios_${i}`, S.sig[i].audios);
   });
 
   // BALISAGE sections
@@ -712,10 +874,23 @@ function renderAllLists(){
           <input id="balCam_${i}" type="file" accept="image/*" capture="environment" onchange="onPhotos(event, 'bal', ${i})" style="display:none">
           <input id="balGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'bal', ${i})" style="display:none">
           <div class="photos" id="balPhotos_${i}"></div>
+
+          <label>Audios</label>
+          <div class="audio-actions">
+            <button class="primary" type="button" onclick="document.getElementById('balAudioRec_${i}').click()">🎙️ Enregistrer</button>
+            <button class="ghost" type="button" onclick="document.getElementById('balAudioPick_${i}').click()">📎 Choisir fichier</button>
+          </div>
+          <input id="balAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'bal', ${i})" style="display:none">
+          <input id="balAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'bal', ${i})" style="display:none">
+          <div class="audios" id="balAudios_${i}"></div>
+
         </div>
       </details>`;
     bal_list.appendChild(wrap);
     addPhotoGrid(`balPhotos_${i}`, S.bal.sections, i);
+    S.bal.sections[i].audios = S.bal.sections[i].audios || [];
+    S.bal.sections[i].audios.forEach(a=>a.__focusReturn='bal_'+i);
+    renderAudioList(`balAudios_${i}`, S.bal.sections[i].audios);
   });
 
   // TRAVAUX
@@ -768,12 +943,25 @@ function renderAllLists(){
           <input id="travGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'trav', ${i})" style="display:none">
           <div class="photos" id="travPhotos_${i}"></div>
 
+          <label>Audios</label>
+          <div class="audio-actions">
+            <button class="primary" type="button" onclick="document.getElementById('travAudioRec_${i}').click()">🎙️ Enregistrer</button>
+            <button class="ghost" type="button" onclick="document.getElementById('travAudioPick_${i}').click()">📎 Choisir fichier</button>
+          </div>
+          <input id="travAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'trav', ${i})" style="display:none">
+          <input id="travAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'trav', ${i})" style="display:none">
+          <div class="audios" id="travAudios_${i}"></div>
+
+
           <label>Commentaire</label>
           <textarea oninput="S.trav[${i}].comment=this.value">${o.comment||''}</textarea>
         </div>
       </details>`;
     trav_list.appendChild(wrap);
     addPhotoGrid(`travPhotos_${i}`, S.trav, i);
+    S.trav[i].audios = S.trav[i].audios || [];
+    S.trav[i].audios.forEach(a=>a.__focusReturn='trav_'+i);
+    renderAudioList(`travAudios_${i}`, S.trav[i].audios);
   });
 
   // POINTS SENSIBLES
@@ -817,12 +1005,25 @@ function renderAllLists(){
           <input id="sensGal_${i}" type="file" accept="image/*" multiple onchange="onPhotos(event, 'sens', ${i})" style="display:none">
           <div class="photos" id="sensPhotos_${i}"></div>
 
+          <label>Audios</label>
+          <div class="audio-actions">
+            <button class="primary" type="button" onclick="document.getElementById('sensAudioRec_${i}').click()">🎙️ Enregistrer</button>
+            <button class="ghost" type="button" onclick="document.getElementById('sensAudioPick_${i}').click()">📎 Choisir fichier</button>
+          </div>
+          <input id="sensAudioRec_${i}" type="file" accept="audio/*" capture onchange="onAudioFiles(event, 'sens', ${i})" style="display:none">
+          <input id="sensAudioPick_${i}" type="file" accept="audio/*" multiple onchange="onAudioFiles(event, 'sens', ${i})" style="display:none">
+          <div class="audios" id="sensAudios_${i}"></div>
+
+
           <label>Description / commentaire</label>
           <textarea oninput="S.sens[${i}].comment=this.value">${o.comment||''}</textarea>
         </div>
       </details>`;
     sens_list.appendChild(wrap);
     addPhotoGrid(`sensPhotos_${i}`, S.sens, i);
+    S.sens[i].audios = S.sens[i].audios || [];
+    S.sens[i].audios.forEach(a=>a.__focusReturn='sens_'+i);
+    renderAudioList(`sensAudios_${i}`, S.sens[i].audios);
   });
 
   updateDerived();
@@ -865,37 +1066,45 @@ function onSigType(i, type, initializing=false){
 
 // Adders / deleters
 function addSig(){
-  S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],comment:''});
+  S.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],audios:[],comment:''});
   const idx = S.sig.length-1;
   saveAll(false);
   __focusId = 'sig_' + idx;
   __exclusiveFocusPrefix = 'sig';
   renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
 }
 function addBalSec(){
-  S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],comment:''});
+  S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],audios:[],comment:''});
   const idx = S.bal.sections.length-1;
   saveAll(false);
   __focusId = 'bal_' + idx;
   __exclusiveFocusPrefix = 'bal';
   renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
 }
 function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
 function addTrav(){
-  S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],comment:'',other:''});
+  S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],audios:[],comment:'',other:''});
   const idx = S.trav.length-1;
   saveAll(false);
   __focusId = 'trav_' + idx;
   __exclusiveFocusPrefix = 'trav';
   renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
 }
 function addSens(){
-  S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],comment:'',other:''});
+  S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],audios:[],comment:'',other:''});
   const idx = S.sens.length-1;
   saveAll(false);
   __focusId = 'sens_' + idx;
   __exclusiveFocusPrefix = 'sens';
   renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
 }
 function delItem(kind, i){
   S[kind].splice(i,1);
@@ -1031,6 +1240,8 @@ function loadAll(){
 
 
   renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
 }
 
 function resetAll(){
@@ -1054,7 +1265,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V15_1"
+`<gpx version="1.1" creator="FicheItineraireAPN_V16"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1091,7 +1302,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V15.1)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1112,11 +1323,27 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 
 .bureau-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 0}
+
+.audios{display:grid;gap:8px;margin-top:8px}
+.audio-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+.audio-item .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.audio-item .name{font-size:.9rem}
+.audio-item audio{width:100%;margin-top:6px}
+.audio-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 </style>`;
 
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
   h+=`<p><strong>Participants :</strong> ${escapeXml(p.part1||'')} / ${escapeXml(p.part2||'')}</p>`;
   if(p.com) h+=`<p>${escapeXml(p.com)}</p>`;
+  // Audios projet
+  if((S.projectAudios||[]).length){
+    h+=`<h2>Audios (projet)</h2><div class="card">`;
+    (S.projectAudios||[]).forEach((a,ai)=>{
+      const fname = `PROJET_${ai+1}.` + (a.ext||extFromMime(a.type||''));
+      h+=`<div class="card"><div><strong>${escapeXml(a.name||fname)}</strong></div><audio controls src="audios/${fname}"></audio></div>`;
+    });
+    h+=`</div>`;
+  }
 
   // G — Caractéristiques
   const it=S.bureau?.it||{};
@@ -1222,7 +1449,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
   return h;
 }
 
-function exportZIP(){
+async function exportZIP(){
   // Ensure latest values are saved
   saveAll(false);
 
@@ -1247,6 +1474,34 @@ function exportZIP(){
   // Raw JSON backup (always useful)
   zip.file("fiche_donnees.json", JSON.stringify(S, null, 2));
 
+  // Audios (stored in IndexedDB)
+async function addAudiosFromRefs(refs, prefix){
+  for(let ai=0; ai<(refs||[]).length; ai++){
+    const ref = refs[ai];
+    const rec = await idbGetAudio(ref.id);
+    if(!rec || !rec.blob) continue;
+    const ext = extFromMime(rec.meta?.type || ref.type || '');
+    const fname = `${prefix}_${ai+1}.${ext}`;
+    // keep ext in ref for bureauHTML (best-effort)
+    ref.ext = ext;
+    zip.file(`audios/${fname}`, rec.blob);
+  }
+}
+async function addAudiosFromObjects(arr, prefix){
+  for(let i=0;i<(arr||[]).length;i++){
+    const refs = arr[i].audios || [];
+    for(let ai=0; ai<refs.length; ai++){
+      const ref = refs[ai];
+      const rec = await idbGetAudio(ref.id);
+      if(!rec || !rec.blob) continue;
+      const ext = extFromMime(rec.meta?.type || ref.type || '');
+      const fname = `${prefix}_${i+1}_${ai+1}.${ext}`;
+      ref.ext = ext;
+      zip.file(`audios/${fname}`, rec.blob);
+    }
+  }
+}
+
   // Photos
   function addPhotos(arr, prefix){
     arr.forEach((o,i)=>{
@@ -1260,6 +1515,13 @@ function exportZIP(){
   addPhotos(S.bal.sections, "BAL");
   addPhotos(S.trav, "TRAV");
   addPhotos(S.sens, "SENS");
+
+  // Audios
+  await addAudiosFromRefs(S.projectAudios||[], 'PROJET');
+  await addAudiosFromObjects(S.sig, 'SIG');
+  await addAudiosFromObjects(S.bal.sections, 'BAL');
+  await addAudiosFromObjects(S.trav, 'TRAV');
+  await addAudiosFromObjects(S.sens, 'SENS');
 
   zip.generateAsync({type:'blob'}).then(b=>{
     const a=document.createElement('a');
