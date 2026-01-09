@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V16.2PATCH)</title>
+<title>PWA – Fiche projet itinéraire (V16.2PATCH2)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -78,7 +78,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V16.2PATCH (médias unifiés + audio projet OK)
+<header><h1>Fiche projet itinéraire – V16.2PATCH2 (fix suppression audio projet)
 
 <main>
 <!-- A -->
@@ -388,7 +388,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"V16.2PATCH"},
+  meta:{version:"V16.2PATCH2"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -665,15 +665,22 @@ async function renderAudioList(containerId, refs){
     delBtn.style.width = 'auto';
     delBtn.style.padding = '6px 10px';
 
-    delBtn.onclick = async ()=>{
-      const idx = list.findIndex(x=>x.id===ref.id);
-      if(idx === -1) return;
-      await idbDelAudio(ref.id);
-      list.splice(idx, 1);
-      saveAll(false);
-      __focusId = ref.__focusReturn || null;
-      renderAllLists();
-    };
+    delBtn.onclick = async (ev)=>{
+  try{
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+    const idx = list.findIndex(x=>x.id===ref.id);
+    if(idx === -1) return;
+    await idbDelAudio(ref.id);
+    list.splice(idx, 1);
+    // persist
+    saveAll(false);
+    // update only the audio list to avoid side effects on accordéon/scroll
+    renderAudioList(containerId, list);
+  }catch(err){
+    console.error(err);
+    alert("Erreur suppression audio. Recharge la page si besoin.");
+  }
+};
 
     metaDiv.appendChild(nameSpan);
     metaDiv.appendChild(delBtn);
@@ -1244,7 +1251,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V16_2_PATCH"
+`<gpx version="1.1" creator="FicheItineraireAPN_V16.2PATCH2"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1281,7 +1288,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16.2PATCH)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V16.2PATCH2)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
