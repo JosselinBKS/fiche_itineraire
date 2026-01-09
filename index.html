@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (V13.2)</title>
+<title>PWA – Fiche projet itinéraire (V13.3)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -65,7 +65,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V13.2 (correctifs GPS/Photos + titres)</h1></header>
+<header><h1>Fiche projet itinéraire – V13.3 (focus ajout = fermeture auto des objets)</h1></header>
 
 <main>
 <!-- A -->
@@ -363,7 +363,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"13.2"},
+  meta:{version:"13.3"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
@@ -379,6 +379,14 @@ let S = {
 const KEY="pwa_itin_v1_8";
 // --- V13.2: preserve open details across rerender + keep focus (GPS/photo/delete) ---
 let __focusId = null;
+let __exclusiveFocusPrefix = null;
+
+function closeSiblingsByPrefix(prefix, keepId){
+  document.querySelectorAll(`details.obj[id^="${prefix}_"]`).forEach(d=>{
+    d.open = (d.id === keepId);
+  });
+}
+
 function captureOpenDetails(){
   return Array.from(document.querySelectorAll('details[open][id]')).map(d=>d.id);
 }
@@ -755,7 +763,24 @@ function renderAllLists(){
   updateDerived();
 
   restoreOpenDetails(__openBefore);
-  if(__focusId){ focusById(__focusId); __focusId=null; }
+  if(__focusId){
+    if(__exclusiveFocusPrefix){
+      // Close other terrain sections (but keep bureau sections open)
+      const el = document.getElementById(__focusId);
+      const section = el ? el.closest('details.section') : null;
+      if(section && section.dataset.accordion !== 'free'){
+        closeOtherSections(section);
+        document.querySelectorAll('details.section[data-accordion="one"]').forEach(s=>{
+          if(s!==section) s.querySelectorAll('.item details').forEach(x=>x.open=false);
+        });
+      }
+      // Close siblings in the same list and open only the focused object
+      closeSiblingsByPrefix(__exclusiveFocusPrefix, __focusId);
+      __exclusiveFocusPrefix = null;
+    }
+    focusById(__focusId);
+    __focusId=null;
+  }
 }
 
 // Signalétique dynamic style
@@ -779,6 +804,7 @@ function addSig(){
   const idx = S.sig.length-1;
   saveAll(false);
   __focusId = 'sig_' + idx;
+  __exclusiveFocusPrefix = 'sig';
   renderAllLists();
 }
 function addBalSec(){
@@ -786,6 +812,7 @@ function addBalSec(){
   const idx = S.bal.sections.length-1;
   saveAll(false);
   __focusId = 'bal_' + idx;
+  __exclusiveFocusPrefix = 'bal';
   renderAllLists();
 }
 function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
@@ -794,6 +821,7 @@ function addTrav(){
   const idx = S.trav.length-1;
   saveAll(false);
   __focusId = 'trav_' + idx;
+  __exclusiveFocusPrefix = 'trav';
   renderAllLists();
 }
 function addSens(){
@@ -801,6 +829,7 @@ function addSens(){
   const idx = S.sens.length-1;
   saveAll(false);
   __focusId = 'sens_' + idx;
+  __exclusiveFocusPrefix = 'sens';
   renderAllLists();
 }
 function delItem(kind, i){
@@ -958,7 +987,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V13_2"
+`<gpx version="1.1" creator="FicheItineraireAPN_V13_3"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -995,7 +1024,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V13.2)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (V13.3)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
