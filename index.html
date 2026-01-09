@@ -48,10 +48,12 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   .row2,.row3{grid-template-columns:1fr}
   .footer .row{grid-template-columns:1fr 1fr}
 }
+
+.gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – V1.10.1 (enjeux & contraintes)</h1></header>
+<header><h1>Fiche projet itinéraire – V11 (GPS feedback + enjeux)</h1></header>
 
 <main>
 <!-- A -->
@@ -268,10 +270,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 
     <label>Procédures / vigilances pressenties</label>
     <textarea id="env_procedures" placeholder="ex : évaluation d’incidences, avis partenaires, mesures d’évitement…"></textarea>
-
-    <label>Commentaires complémentaires</label>
-    <textarea id="env_com"></textarea>
-  </div>
+</div>
 </details>
 
 <!-- I -->
@@ -352,17 +351,17 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.10.1"},
+  meta:{version:"11"},
   project:{},
   sig:[],
   bal:{types:[], action_global:"Maintien", com_global:"", sections:[]},
   trav:[],
-  ent:{jh:"", nat:[], com:""},
+  ent:{jh:"", nat:[]},
   sens:[],
   bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:"",
-  it:{route_type:"Boucle", theme:"", length:"", dplus:"", dminus:"", time:"", public:"Grand public", season:"Toute l’année", direction:"", com:""},
-  env:{zones:[], enjeux:[], enjeux_com:"", constraints:"", procedures:"", com:""},
-  plan:{short:"", mid:"", phasage:"", com:""}}
+  it:{route_type:"Boucle", theme:"", length:"", dplus:"", dminus:"", time:"", public:"Grand public", season:"Toute l’année", direction:""},
+  env:{zones:[], enjeux:[], enjeux_com:"", constraints:"", procedures:""},
+  plan:{short:"", mid:"", phasage:""}}
 };
 
 const KEY="pwa_itin_v1_8";
@@ -487,7 +486,8 @@ function renderAllLists(){
               </div>
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sig[${i}].lat=la;S.sig[${i}].lon=lo; saveAll(false); renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delItem('sig', ${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -537,7 +537,8 @@ function renderAllLists(){
               </div>
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.bal.sections[${i}].lat=la;S.bal.sections[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS (début)</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.bal.sections[${i}].lat=la;S.bal.sections[${i}].lon=lo; saveAll(false); renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS (début)"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delBalSec(${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -586,7 +587,8 @@ function renderAllLists(){
           <input value="${o.other||''}" oninput="S.trav[${i}].other=this.value">
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS (début)</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.trav[${i}].lat=la;S.trav[${i}].lon=lo; saveAll(false); renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS (début)"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delItem('trav', ${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -629,7 +631,8 @@ function renderAllLists(){
           <input value="${o.other||''}" oninput="S.sens[${i}].other=this.value">
 
           <div class="actions">
-            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo; saveAll(false); alert('GPS enregistré');})">📍 GPS</button>
+            <button class="ghost" type="button" onclick="gpsFill((la,lo)=>{S.sens[${i}].lat=la;S.sens[${i}].lon=lo; saveAll(false); renderAllLists();})">${o.lat!=null ? "✔ GPS OK" : "📍 GPS"}</button>
+            ${o.lat!=null ? `<div class="gps-ok">lat : ${o.lat.toFixed(5)}<br>lon : ${o.lon.toFixed(5)}</div>` : ""}
             <button class="danger" type="button" onclick="delItem('sens', ${i})">🗑️ Supprimer l’objet</button>
           </div>
 
@@ -744,8 +747,7 @@ function saveAll(showToast=true){
       enjeux: selMulti(enjeux),
       enjeux_com: enjeux_com.value||'',
       constraints: env_constraints.value||'',
-      procedures: env_procedures.value||'',
-      com: env_com.value||''
+      procedures: env_procedures.value||''
     },
     plan: {
       short: plan_short.value||'',
@@ -805,10 +807,7 @@ function loadAll(){
   setMulti(enjeux, S.bureau?.env?.enjeux||[]);
   enjeux_com.value = S.bureau?.env?.enjeux_com||'';
   env_constraints.value = S.bureau?.env?.constraints||'';
-  env_procedures.value = S.bureau?.env?.procedures||'';
-  env_com.value = S.bureau?.env?.com||'';
-
-  // bureau - plan d’actions & phasage
+  env_procedures.value = S.bureau?.env?.procedures||'';  // bureau - plan d’actions & phasage
   plan_short.value = S.bureau?.plan?.short||'';
   plan_mid.value = S.bureau?.plan?.mid||'';
   plan_phasage.value = S.bureau?.plan?.phasage||'';
@@ -879,7 +878,9 @@ function bureauHTML(){
   let h=`<!doctype html><meta charset="utf-8"><title>Fiche projet itinéraire</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
-  img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}</style>`;
+  img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
+.gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
+</style>`;
 
   h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
   h+=`<p><strong>Participants :</strong> ${escapeXml(p.part1||'')} / ${escapeXml(p.part2||'')}</p>`;
@@ -910,8 +911,7 @@ function bureauHTML(){
   ${env.enjeux_com?`<p><strong>Commentaires enjeux :</strong> ${escapeXml(env.enjeux_com)}</p>`:''}
   ${env.constraints?`<p><strong>Contraintes :</strong> ${escapeXml(env.constraints)}</p>`:''}
   ${env.procedures?`<p><strong>Procédures / vigilances :</strong> ${escapeXml(env.procedures)}</p>`:''}
-  ${env.com?`<p>${escapeXml(env.com)}</p>`:''}
-  </div>`;
+</div>`;
 
   // I — Plan d’actions & phasage
   const plan=S.bureau?.plan||{};
