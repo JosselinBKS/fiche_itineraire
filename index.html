@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.10.6)</title>
+<title>PWA – Fiche projet itinéraire (1.11.0)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.10.6 (raccourcis bureau)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.11.0 (raccourcis bureau)</h1></header>
 
 <main>
 <!-- A -->
@@ -398,7 +398,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.10.6"},
+  meta:{version:"1.11.0"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1305,7 +1305,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.10.6)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.11.0)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1454,6 +1454,291 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
   return h;
 }
 
+function renduHTML(){
+  const p=S.project||{};
+  const it=S.bureau?.it||{};
+  const env=S.bureau?.env||{};
+  const plan=S.bureau?.plan||{};
+
+  const nSig = (S.sig||[]).length;
+  const nBal = (S.bal?.sections||[]).length;
+  const nTrav = (S.trav||[]).length;
+  const nSens = (S.sens||[]).length;
+
+  const fmtGPS = (o)=> (o && o.lat!=null && o.lon!=null) ? (Number(o.lat).toFixed(5)+", "+Number(o.lon).toFixed(5)) : '—';
+  const esc = escapeXml;
+
+  function photoBlock(prefix, idx, n){
+    if(!n || n<1) return '';
+    let h = `<div class="media-grid">`;
+    for(let i=1;i<=n;i++){
+      const src = `photos/${prefix}_${idx}_${i}.jpg`;
+      h += `<figure class="ph"><img src="${src}" alt="${prefix}_${idx}_${i}"><figcaption>${prefix} #${idx} — photo ${i}</figcaption></figure>`;
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function audioBlock(prefix, idx, refs){
+    const arr = refs || [];
+    if(!arr.length) return '';
+    let h = `<div class="audio-list">`;
+    for(let i=0;i<arr.length;i++){
+      const ref = arr[i]||{};
+      const ext = extFromMime(ref.type || 'audio/webm');
+      const src = (prefix==='PROJET') ? `audios/PROJET_${i+1}.${ext}` : `audios/${prefix}_${idx}_${i+1}.${ext}`;
+      const label = ref.name ? esc(ref.name) : `Audio ${i+1}`;
+      h += `<div class="audio-item"><div class="audio-label">🎧 ${label}</div><audio controls preload="none" src="${src}"></audio></div>`;
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function fieldRow(label, value){
+    if(value==null || value==='') return '';
+    return `<div class="kv"><div class="k">${esc(label)}</div><div class="v">${esc(String(value))}</div></div>`;
+  }
+
+  function sectionTitle(title, sub){
+    return `<div class="sec-title"><h2>${esc(title)}</h2>${sub?`<div class="sec-sub">${esc(sub)}</div>`:''}</div>`;
+  }
+
+  let h = `<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche projet itinéraire — Restitution (1.11.0)</title>
+<style>
+:root{
+  --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
+  --bg:#f9fafb; --card:#ffffff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.page{max-width:980px;margin:0 auto;padding:28px 18px 60px}
+.hero{background:linear-gradient(135deg, rgba(15,118,110,.10), rgba(30,64,175,.08));border-bottom:1px solid var(--line)}
+.hero .page{padding-bottom:22px}
+h1{margin:0;font-size:1.65rem;letter-spacing:-.02em}
+.meta{margin-top:10px;display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.small{color:var(--muted);font-size:.9rem;line-height:1.35}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.85rem}
+.badge strong{font-weight:800}
+hr.sep{border:none;border-top:1px solid var(--line);margin:20px 0}
+
+.sec-title{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:18px 0 10px}
+.sec-title h2{margin:0;font-size:1.15rem}
+.sec-sub{color:var(--muted);font-size:.92rem}
+
+.kvgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:10px;padding:8px 0;border-top:1px dashed var(--line)}
+.kv:first-child{border-top:none}
+.k{color:var(--muted);font-size:.92rem}
+.v{font-weight:650}
+
+.obj{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:10px 0;padding:12px}
+.obj-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.obj-title{font-weight:900;font-size:1.02rem}
+.obj-sub{color:var(--muted);font-size:.9rem;margin-top:2px}
+.obj-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:.78rem;border:1px solid var(--line);background:#fff;border-radius:999px;padding:2px 8px;color:var(--muted)}
+
+.note{white-space:pre-wrap;margin-top:8px;color:#111827}
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:10px;margin-top:10px}
+.ph{margin:0}
+.ph img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff}
+.ph figcaption{margin-top:6px;color:var(--muted);font-size:.82rem}
+.audio-list{display:grid;gap:10px;margin-top:10px}
+.audio-item{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px}
+.audio-label{font-weight:750;margin-bottom:6px}
+audio{width:100%}
+
+@media (max-width:760px){
+  .meta{grid-template-columns:1fr}
+  .kvgrid{grid-template-columns:1fr}
+  .kv{grid-template-columns:140px 1fr}
+}
+@media print{
+  body{background:#fff}
+  .hero{background:#fff}
+  .page{padding:18px 14px}
+  .card,.obj{break-inside:avoid}
+}
+</style>
+</head><body>
+<div class="hero">
+  <div class="page">
+    <h1>${esc(p.name||'Fiche projet itinéraire')}</h1>
+    <div class="small">${esc(p.type||'')}${p.commune?` • Commune de départ : ${esc(p.commune)}`:''}${p.date?` • Date : ${esc(p.date)}`:''}</div>
+
+    <div class="badges">
+      <span class="badge">Signalétique <strong>${nSig}</strong></span>
+      <span class="badge">Balisage (sections) <strong>${nBal}</strong></span>
+      <span class="badge">Travaux <strong>${nTrav}</strong></span>
+      <span class="badge">Points sensibles <strong>${nSens}</strong></span>
+      <span class="badge">Entretien <strong>${esc(S.ent?.jh||'—')}</strong> JH/an</span>
+    </div>
+
+    <div class="meta">
+      <div class="card">
+        <div style="font-weight:900;margin-bottom:6px">Identification</div>
+        <div class="kvgrid">
+          <div>
+            <div class="small"><strong>Participants</strong></div>
+            <div class="small">${esc(p.part1||'')}${p.part2?` / ${esc(p.part2)}`:''}</div>
+          </div>
+          <div>
+            <div class="small"><strong>Version</strong></div>
+            <div class="small">1.11.0</div>
+          </div>
+        </div>
+        ${p.com?`<hr class="sep"><div class="small"><strong>Commentaire général</strong><div class="note">${esc(p.com)}</div></div>`:''}
+        ${audioBlock('PROJET', 0, S.projectAudios||[])}
+      </div>
+
+      <div class="card">
+        <div style="font-weight:900;margin-bottom:6px">Décision</div>
+        <div class="kvgrid">
+          <div class="kv"><div class="k">Intérêt</div><div class="v">${esc(S.bureau?.interest||'—')} / 5</div></div>
+          <div class="kv"><div class="k">Décision</div><div class="v">${esc(S.bureau?.decision||'—')}</div></div>
+          <div class="kv"><div class="k">Mise en tourisme</div><div class="v">${esc(S.bureau?.tour_pot||'—')}</div></div>
+          <div class="kv"><div class="k">Coût initial</div><div class="v">${esc(S.bureau?.cost_init_manual||'—')} €</div></div>
+        </div>
+        ${S.bureau?.arg?`<hr class="sep"><div class="small"><strong>Argumentaire</strong><div class="note">${esc(S.bureau.arg)}</div></div>`:''}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  ${sectionTitle("Caractéristiques de l’itinéraire")}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Type de parcours", it.route_type)}
+      ${fieldRow("Thème principal", it.theme)}
+      ${fieldRow("Longueur (km)", it.length)}
+      ${fieldRow("Dénivelé + (m)", it.dplus)}
+      ${fieldRow("Dénivelé – (m)", it.dminus)}
+      ${fieldRow("Temps estimé", it.time)}
+      ${fieldRow("Public cible", it.public)}
+      ${fieldRow("Saisonnalité", it.season)}
+      ${fieldRow("Sens conseillé", it.direction)}
+    </div>
+    ${it.com?`<hr class="sep"><div class="small"><strong>Commentaires</strong><div class="note">${esc(it.com)}</div></div>`:''}
+  </div>
+
+  ${sectionTitle("Contraintes (nature & règles)")}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Enjeux", (env.enjeux||[]).join(', '))}
+      ${fieldRow("Zones traversées", (env.zones||[]).join(', '))}
+    </div>
+    ${(env.enjeux_com||env.constraints||env.procedures)?`<hr class="sep">`:''}
+    ${env.enjeux_com?`<div class="small"><strong>Commentaires</strong><div class="note">${esc(env.enjeux_com)}</div></div>`:''}
+    ${env.constraints?`<div class="small" style="margin-top:10px"><strong>Contraintes identifiées</strong><div class="note">${esc(env.constraints)}</div></div>`:''}
+    ${env.procedures?`<div class="small" style="margin-top:10px"><strong>Procédures / vigilances</strong><div class="note">${esc(env.procedures)}</div></div>`:''}
+  </div>
+
+  ${sectionTitle("Plan d’actions & phasage")}
+  <div class="card">
+    ${plan.short?`<div class="small"><strong>Court terme</strong><div class="note">${esc(plan.short)}</div></div>`:''}
+    ${plan.mid?`<div class="small" style="margin-top:10px"><strong>Moyen terme</strong><div class="note">${esc(plan.mid)}</div></div>`:''}
+    ${plan.phasage?`<div class="small" style="margin-top:10px"><strong>Phasage</strong><div class="note">${esc(plan.phasage)}</div></div>`:''}
+    ${plan.com?`<div class="small" style="margin-top:10px"><strong>Commentaires</strong><div class="note">${esc(plan.com)}</div></div>`:''}
+  </div>
+
+  <hr class="sep">
+
+  ${sectionTitle("Signalétique", `${nSig} objet(s)`)}
+  ${(S.sig||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Signalétique #${i+1}</div>
+          <div class="obj-sub">${esc(o.type||'')} • ${esc(o.style||'')} • Action : ${esc(o.action||'')}</div>
+        </div>
+        <div class="obj-tags"><span class="tag">GPS : ${fmtGPS(o)}</span></div>
+      </div>
+      ${o.comment?`<div class="note">${esc(o.comment)}</div>`:''}
+      ${photoBlock('SIG', i+1, (o.photos||[]).length)}
+      ${audioBlock('SIG', i+1, o.audios||[])}
+    </div>
+  `).join('') || `<div class="small">Aucun objet signalétique saisi.</div>`}
+
+  ${sectionTitle("Balisage", `${nBal} section(s)`)}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Types rencontrés", (S.bal?.types||[]).join(', '))}
+      ${fieldRow("Action globale", S.bal?.action_global||'')}
+    </div>
+    ${(S.bal?.com_global)?`<hr class="sep"><div class="small"><strong>Commentaire global</strong><div class="note">${esc(S.bal.com_global)}</div></div>`:''}
+  </div>
+
+  ${(S.bal?.sections||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Section balisage #${i+1}</div>
+          <div class="obj-sub">Action : ${esc(o.action||'')} • Linéaire : ${esc(o.linear||'')} m • Temps : ${esc(o.jh||'')} JH</div>
+        </div>
+        <div class="obj-tags"><span class="tag">GPS début : ${fmtGPS(o)}</span></div>
+      </div>
+      ${o.comment?`<div class="note">${esc(o.comment)}</div>`:''}
+      ${photoBlock('BAL', i+1, (o.photos||[]).length)}
+      ${audioBlock('BAL', i+1, o.audios||[])}
+    </div>
+  `).join('')}
+
+  ${sectionTitle("Travaux de réouverture", `${nTrav} objet(s)`)}
+  ${(S.trav||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Travail #${i+1}</div>
+          <div class="obj-sub">${esc(o.type||'')} • Linéaire : ${esc(o.linear||'')} m • Temps : ${esc(o.jh||'')} JH</div>
+        </div>
+        <div class="obj-tags"><span class="tag">GPS début : ${fmtGPS(o)}</span></div>
+      </div>
+      ${o.other?`<div class="small"><strong>Précision</strong> : ${esc(o.other)}</div>`:''}
+      ${o.comment?`<div class="note">${esc(o.comment)}</div>`:''}
+      ${photoBlock('TRAV', i+1, (o.photos||[]).length)}
+      ${audioBlock('TRAV', i+1, o.audios||[])}
+    </div>
+  `).join('') || `<div class="small">Aucun travail saisi.</div>`}
+
+  ${sectionTitle("Entretien annuel estimé")}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Volume (JH/an)", S.ent?.jh||'')}
+      ${fieldRow("Natures", (S.ent?.nat||[]).join(', '))}
+    </div>
+    ${(S.ent?.com)?`<hr class="sep"><div class="small"><strong>Commentaire</strong><div class="note">${esc(S.ent.com)}</div></div>`:''}
+  </div>
+
+  ${sectionTitle("Points sensibles & pb de tronçons", `${nSens} objet(s)`)}
+  ${(S.sens||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Point sensible #${i+1}</div>
+          <div class="obj-sub">Catégorie : ${esc(o.cat||'')}</div>
+        </div>
+        <div class="obj-tags"><span class="tag">GPS : ${fmtGPS(o)}</span></div>
+      </div>
+      ${o.other?`<div class="small"><strong>Précision</strong> : ${esc(o.other)}</div>`:''}
+      ${o.comment?`<div class="note">${esc(o.comment)}</div>`:''}
+      ${photoBlock('SENS', i+1, (o.photos||[]).length)}
+      ${audioBlock('SENS', i+1, o.audios||[])}
+    </div>
+  `).join('') || `<div class="small">Aucun point sensible saisi.</div>`}
+
+</div>
+</body></html>`;
+
+  return h;
+}
+
 async function exportZIP(){
   // Ensure latest values are saved
   saveAll(false);
@@ -1480,8 +1765,7 @@ async function exportZIP(){
   const gpx_sensibles = gpxForPoints(S.sens, "SENS", o=>`${o.cat||''}`);
   if(gpx_sensibles) zip.file("points_sensibles.gpx", gpx_sensibles);
 // Bureau HTML (all objects, GPS optional)
-  zip.file("fiche_bureau.html", bureauHTML());
-
+  zip.file("fiche_restitution.html", renduHTML());
   // Raw JSON backup (always useful)
   zip.file("fiche_donnees.json", JSON.stringify(S, null, 2));
 
