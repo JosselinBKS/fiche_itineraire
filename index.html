@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.9.0)</title>
+<title>PWA – Fiche projet itinéraire (1.10.6)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -76,14 +76,21 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 .audio-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 
 .media-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+
+/* --- Raccourcis bureau (dans section G) --- */
+.bureaubar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.bureaubar button{width:auto;padding:8px 10px}
+button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
+@media (max-width:720px){ .bureaubar button{width:100%} }
+
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.9.0
+<header><h1>Fiche projet itinéraire – 1.10.6 (raccourcis bureau)</h1></header>
 
 <main>
 <!-- A -->
-<details class="section" data-accordion="one" open>
+<details class="section" data-sec="A" data-accordion="one" open>
   <summary>A. Identification <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Nom provisoire / code de l’itinéraire</label>
@@ -124,7 +131,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- B -->
-<details class="section" data-accordion="one">
+<details class="section" data-sec="B" data-accordion="one">
   <summary>B. Signalétique <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSig()">➕ Ajouter une signalétique</button>
@@ -134,7 +141,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- C -->
-<details class="section" data-accordion="one">
+<details class="section" data-sec="C" data-accordion="one">
   <summary>C. Balisage <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Types de balisage rencontrés (multi-choix)</label>
@@ -160,7 +167,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- D -->
-<details class="section" data-accordion="one">
+<details class="section" data-sec="D" data-accordion="one">
   <summary>D. Travaux de réouverture <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addTrav()">➕ Ajouter un travail</button>
@@ -170,7 +177,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- E -->
-<details class="section" data-accordion="one">
+<details class="section" data-sec="E" data-accordion="one">
   <summary>E. Entretien annuel estimé <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <div class="row2">
@@ -196,7 +203,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- F -->
-<details class="section" data-accordion="one">
+<details class="section" data-sec="F" data-accordion="one">
   <summary>F. Points sensibles & pb de tronçons <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSens()">➕ Ajouter un point sensible</button>
@@ -206,15 +213,15 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 
 
 <!-- G -->
-<details class="section bureau-section" data-accordion="free">
+<details class="section bureau-section" data-sec="G" data-accordion="free">
   <summary>G. Caractéristiques de l’itinéraire <span class="badge bureau">bureau</span></summary>
   <div class="sec">
-    <div class="bureau-tools">
-      <button class="ghost" type="button" onclick="expandBureau(true)">⬇ Tout déplier (bureau)</button>
-      <button class="ghost" type="button" onclick="expandBureau(false)">⬆ Tout replier (bureau)</button>
-    </div>
 
-    <div class="row2">
+<div class="bureaubar">
+  <button class="primary" type="button" id="btn_open_bureau" onclick="openBureauSections()">⬇️ Tout déplier (bureau)</button>
+  <button class="primary blue" type="button" id="btn_close_bureau" onclick="closeBureauSections()">⬆️ Tout replier (bureau)</button>
+</div>
+<div class="row2">
       <div>
         <label>Type de parcours</label>
         <select id="it_route_type">
@@ -275,7 +282,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- H -->
-<details class="section bureau-section" data-accordion="free">
+<details class="section bureau-section" data-sec="H" data-accordion="free">
   <summary>H. Contraintes (nature & règles) <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <label>Espaces / zonages traversés</label>
@@ -312,7 +319,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 </details>
 
 <!-- I -->
-<details class="section bureau-section" data-accordion="free">
+<details class="section bureau-section" data-sec="I" data-accordion="free">
   <summary>I. Plan d’actions & phasage <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <label>Actions prioritaires (court terme)</label>
@@ -331,7 +338,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 
 
 <!-- K -->
-<details class="section bureau-section" data-accordion="free">
+<details class="section bureau-section" data-sec="K" data-accordion="free">
   <summary>K. Décision & arbitrage <span class="badge bureau">bureau</span></summary>
   <div class="sec">
     <div class="row3">
@@ -391,7 +398,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.9.0"},
+  meta:{version:"1.10.6"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1267,6 +1274,7 @@ function gpxForPoints(points, prefix, descFieldFn){
 ` xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
 `;
   let gpx = header;
+  let count = 0;
 
   points.forEach((o,i)=>{
     const lat = (o && o.lat!=null) ? Number(o.lat) : null;
@@ -1275,6 +1283,7 @@ function gpxForPoints(points, prefix, descFieldFn){
       const name = `${prefix}_${i+1}`;
       const desc = (descFieldFn ? descFieldFn(o,i) : '') || '';
       // Use '.' decimal separator and stable precision
+      count++;
       gpx += `<wpt lat="${lat.toFixed(8)}" lon="${lon.toFixed(8)}">` +
              `<name>${escapeXml(name)}</name>` +
              `<desc>${escapeXml(desc)}</desc>` +
@@ -1283,6 +1292,7 @@ function gpxForPoints(points, prefix, descFieldFn){
     }
   });
 
+  if(count===0) return null;
   gpx += `</gpx>
 `;
   return gpx;
@@ -1295,7 +1305,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.9.0)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.10.6)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1457,13 +1467,19 @@ async function exportZIP(){
   const stamp = nowStamp();
   const safeName = (S.project.name||"PROJET_ITINERAIRE").replaceAll(' ','_').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) || "PROJET_ITINERAIRE";
 
-  // GPX files (only with GPS)
-  zip.file("signaletique.gpx", gpxForPoints(S.sig, "SIG", o=>`${o.type||''} | ${o.style||''} | ${o.action||''}`));
-  zip.file("balisage_sections.gpx", gpxForPoints(S.bal.sections, "BAL", o=>`${o.action||''} | lin=${o.linear||''}m | jh=${o.jh||''}`));
-  zip.file("travaux.gpx", gpxForPoints(S.trav, "TRAV", o=>`${o.type||''} | lin=${o.linear||''}m | jh=${o.jh||''}`));
-  zip.file("points_sensibles.gpx", gpxForPoints(S.sens, "SENS", o=>`${o.cat||''}`));
+  // GPX files (only if at least 1 point has GPS)
+  const gpx_signaletique = gpxForPoints(S.sig, "SIG", o=>`${o.type||''} | ${o.style||''} | ${o.action||''}`);
+  if(gpx_signaletique) zip.file("signaletique.gpx", gpx_signaletique);
 
-  // Bureau HTML (all objects, GPS optional)
+  const gpx_balisage = gpxForPoints(S.bal.sections, "BAL", o=>`${o.action||''} | lin=${o.linear||''}m | jh=${o.jh||''}`);
+  if(gpx_balisage) zip.file("balisage_sections.gpx", gpx_balisage);
+
+  const gpx_travaux = gpxForPoints(S.trav, "TRAV", o=>`${o.type||''} | lin=${o.linear||''}m | jh=${o.jh||''}`);
+  if(gpx_travaux) zip.file("travaux.gpx", gpx_travaux);
+
+  const gpx_sensibles = gpxForPoints(S.sens, "SENS", o=>`${o.cat||''}`);
+  if(gpx_sensibles) zip.file("points_sensibles.gpx", gpx_sensibles);
+// Bureau HTML (all objects, GPS optional)
   zip.file("fiche_bureau.html", bureauHTML());
 
   // Raw JSON backup (always useful)
@@ -1600,7 +1616,8 @@ async function applyImportedData(data, zip){
 
   // Save and reload UI
   localStorage.setItem(KEY, JSON.stringify(S));
-  loadAll(); // this also renders lists
+  loadAll();
+initBureauButtons(); // this also renders lists
 }
 
 function parseAudioName(path){
@@ -1821,6 +1838,29 @@ async function toggleRecord(kind, idx){
     try{ if(REC.stream) REC.stream.getTracks().forEach(t=>t.stop()); }catch(_e){}
     REC = {active:false, kind:null, idx:null, mr:null, stream:null, chunks:[]};
     setRecordUI(kind, idx, false);
+  }
+}
+
+function openBureauSections(){
+  document.querySelectorAll('details.section.bureau-section').forEach(d=>d.open=true);
+}
+function closeBureauSections(){
+  document.querySelectorAll('details.section.bureau-section').forEach(d=>{
+    const sec = d.getAttribute('data-sec') || '';
+    d.open = (sec === 'G'); // keep G open (buttons stay visible)
+  });
+}
+function initBureauButtons(){
+  const openBtn = document.getElementById('btn_open_bureau');
+  const closeBtn = document.getElementById('btn_close_bureau');
+
+  if(openBtn && openBtn.dataset.bound !== '1'){
+    openBtn.addEventListener('click', openBureauSections);
+    openBtn.dataset.bound = '1';
+  }
+  if(closeBtn && closeBtn.dataset.bound !== '1'){
+    closeBtn.addEventListener('click', closeBureauSections);
+    closeBtn.dataset.bound = '1';
   }
 }
 
