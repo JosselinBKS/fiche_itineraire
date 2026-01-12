@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.11.0)</title>
+<title>PWA – Fiche projet itinéraire (1.11.1)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.11.0 (raccourcis bureau)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.11.1 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -398,7 +398,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.11.0"},
+  meta:{version:"1.11.1"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1265,7 +1265,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_V18.1"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.11.1"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1274,12 +1274,25 @@ function gpxForPoints(points, prefix, descFieldFn){
 ` xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
 `;
   let gpx = header;
+
+  function coordFinite(v){
+    // Reject null/undefined/empty strings
+    if(v===null || v===undefined) return null;
+    if(typeof v==='string' && v.trim()==='') return null;
+    const n = Number(v);
+    if(!Number.isFinite(n)) return null;
+    return n;
+  }
+
   let count = 0;
 
   points.forEach((o,i)=>{
-    const lat = (o && o.lat!=null) ? Number(o.lat) : null;
-    const lon = (o && o.lon!=null) ? Number(o.lon) : null;
+    const lat = coordFinite(o && o.lat);
+    const lon = coordFinite(o && o.lon);
     if(Number.isFinite(lat) && Number.isFinite(lon)){
+      // Skip placeholder coords (e.g., empty strings becoming 0) and obvious invalid ranges
+      if((lat===0 && lon===0) || lat<-90 || lat>90 || lon<-180 || lon>180) return;
+
       const name = `${prefix}_${i+1}`;
       const desc = (descFieldFn ? descFieldFn(o,i) : '') || '';
       // Use '.' decimal separator and stable precision
@@ -1305,7 +1318,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.11.0)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.11.1)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1507,7 +1520,7 @@ function renduHTML(){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire — Restitution (1.11.0)</title>
+<title>PWA – Fiche projet itinéraire (1.11.1)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1768,6 +1781,17 @@ async function exportZIP(){
   zip.file("fiche_restitution.html", renduHTML());
   // Raw JSON backup (always useful)
   zip.file("fiche_donnees.json", JSON.stringify(S, null, 2));
+
+      // Note Windows: some systems may block extraction of unknown extensions (e.g., .gpx) from downloaded ZIPs.
+      // If needed: right-click the ZIP file → Properties → "Unblock" → Apply, then extract.
+      zip.file("README_WINDOWS.txt",
+`Si Windows bloque l’extraction du ZIP (ex : fichiers .gpx) :
+1) Clic droit sur le ZIP → Propriétés
+2) Cocher "Débloquer" (Unblock) → Appliquer
+3) Extraire à nouveau (ou utiliser 7-Zip).
+
+Note : les GPX ne sont exportés que s’il existe au moins un point GPS valide dans la couche concernée.`
+      );
 
   // Audios (stored in IndexedDB)
 async function addAudiosFromRefs(refs, prefix){
