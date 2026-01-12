@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.12.0)</title>
+<title>PWA – Fiche projet itinéraire (1.12.1)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.12.0 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.12.1 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -398,7 +398,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.12.0"},
+  meta:{version:"1.12.1"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1265,7 +1265,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.12.0"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.12.1"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1317,409 +1317,662 @@ function escapeXml(s){
 }
 
 function bureauHTML(){
-  // Restitution + édition légère directement dans la fiche (bureau)
-  const data = JSON.parse(JSON.stringify(S||{}));
-  const safeJson = JSON.stringify(data).replace(/</g,'\\u003c');
+  const p=S.project||{};
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.12.1)</title>
+  <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
+  .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
+  img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
+.gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
-  const p = data.project || {};
-  const safeName = String(p.name||'PROJET_ITINERAIRE').replaceAll(' ','_').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) || 'PROJET_ITINERAIRE';
-  const safeDate = String(p.date||'').replace(/[^0-9-]/g,'');
-  const docKey = `APN_RESTIT_${safeName}_${safeDate||'NA'}`;
+/* V15.1 – objets plus lisibles (sans impact taille) */
+details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:var(--item)}
+details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
+/* flash focus */
+.flash{animation:flashBg 1.2s ease-in-out 1}
+@keyframes flashBg{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+  20%{box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+  60%{box-shadow:0 0 0 6px rgba(16,185,129,.10)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,.0)}
+}
 
-  return `<!doctype html>
-<html lang="fr">
-<head>
+.photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+
+.bureau-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 0}
+
+.audios{display:grid;gap:8px;margin-top:8px}
+.audio-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+.audio-item .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.audio-item .name{font-size:.9rem}
+.audio-item audio{width:100%;margin-top:6px}
+.audio-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+
+.media-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+</style>`;
+
+  h+=`<h1>${escapeXml(p.name||'')}</h1><div class="muted">${escapeXml(p.type||'')} • ${escapeXml(p.commune||'')} • ${escapeXml(p.date||'')}</div>`;
+  h+=`<p><strong>Participants :</strong> ${escapeXml(p.part1||'')} / ${escapeXml(p.part2||'')}</p>`;
+  if(p.com) h+=`<p>${escapeXml(p.com)}</p>`;
+  // Audios projet
+  if((S.projectAudios||[]).length){
+    h+=`<h2>Audios (projet)</h2><div class="card">`;
+    (S.projectAudios||[]).forEach((a,ai)=>{
+      const fname = `PROJET_${ai+1}.` + (a.ext||extFromMime(a.type||''));
+      h+=`<div class="card"><div><strong>${escapeXml(a.name||fname)}</strong></div><audio controls src="audios/${fname}"></audio></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  // G — Caractéristiques
+  const it=S.bureau?.it||{};
+  h+=`<h2>Caractéristiques de l’itinéraire</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Type de parcours : ${escapeXml(it.route_type||'')}</li>
+    <li>Thème principal : ${escapeXml(it.theme||'')}</li>
+    <li>Longueur : ${escapeXml(it.length||'')} km</li>
+    <li>Dénivelé + : ${escapeXml(it.dplus||'')} m</li>
+    <li>Dénivelé – : ${escapeXml(it.dminus||'')} m</li>
+    <li>Temps estimé : ${escapeXml(it.time||'')}</li>
+    <li>Public cible : ${escapeXml(it.public||'')}</li>
+    <li>Saisonnalité : ${escapeXml(it.season||'')}</li>
+    <li>Sens conseillé : ${escapeXml(it.direction||'')}</li>
+  </ul>${it.com?`<p>${escapeXml(it.com)}</p>`:''}</div>`;
+
+  // H — Enjeux & contraintes + environnement/réglementaire
+  const env=S.bureau?.env||{};
+  h+=`<h2>Enjeux & contraintes (environnement & réglementaire)</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Enjeux : ${escapeXml((env.enjeux||[]).join(', '))}</li>
+    <li>Zonages traversés : ${escapeXml((env.zones||[]).join(', '))}</li>
+  </ul>
+  ${env.enjeux_com?`<p><strong>Commentaires enjeux :</strong> ${escapeXml(env.enjeux_com)}</p>`:''}
+  ${env.constraints?`<p><strong>Contraintes :</strong> ${escapeXml(env.constraints)}</p>`:''}
+  ${env.procedures?`<p><strong>Procédures / vigilances :</strong> ${escapeXml(env.procedures)}</p>`:''}
+</div>`;
+
+  // I — Plan d’actions & phasage
+  const plan=S.bureau?.plan||{};
+  h+=`<h2>Plan d’actions & phasage</h2>`;
+  h+=`<div class="card">
+    ${plan.short?`<p><strong>Court terme :</strong><br>${escapeXml(plan.short)}</p>`:''}
+    ${plan.mid?`<p><strong>Moyen terme :</strong><br>${escapeXml(plan.mid)}</p>`:''}
+    ${plan.phasage?`<p><strong>Phasage :</strong><br>${escapeXml(plan.phasage)}</p>`:''}
+    ${plan.com?`<p>${escapeXml(plan.com)}</p>`:''}
+  </div>`;
+
+  // Terrain — Signalétique
+  h+=`<h2>Signalétique</h2>`;
+  (S.sig||[]).forEach((o,i)=>{
+    h+=`<div class="card"><strong>Signalétique ${i+1}</strong><ul>
+      <li>Type : ${escapeXml(o.type||'')}</li>
+      <li>Style : ${escapeXml(o.style||'')}</li>
+      <li>Action : ${escapeXml(o.action||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
+  });
+
+  // Terrain — Balisage
+  h+=`<h2>Balisage</h2>`;
+  h+=`<div class="card"><strong>Global</strong><ul>
+    <li>Types : ${(S.bal?.types||[]).map(escapeXml).join(', ')}</li>
+    <li>Action : ${escapeXml(S.bal?.action_global||'')}</li>
+  </ul>${S.bal?.com_global?`<div>${escapeXml(S.bal.com_global||'')}</div>`:''}</div>`;
+  (S.bal?.sections||[]).forEach((o,i)=>{
+    h+=`<div class="card"><strong>Section ${i+1}</strong><ul>
+      <li>Action : ${escapeXml(o.action||'')}</li>
+      <li>Linéaire : ${escapeXml(o.linear||'')}</li>
+      <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+    </ul></div>`;
+  });
+
+  // Terrain — Travaux
+  h+=`<h2>Travaux de réouverture</h2>`;
+  (S.trav||[]).forEach((o,i)=>{
+    h+=`<div class="card"><strong>Travail ${i+1}</strong><ul>
+      <li>Type : ${escapeXml(o.type||'')}</li>
+      <li>Linéaire : ${escapeXml(o.linear||'')}</li>
+      <li>Temps (JH) : ${escapeXml(o.jh||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+      ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
+  });
+
+  // Terrain — Entretien
+  h+=`<h2>Entretien annuel estimé</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Volume : ${escapeXml(S.ent?.jh||'')}</li>
+    <li>Nature : ${(S.ent?.nat||[]).map(escapeXml).join(', ')}</li>
+  </ul>${S.ent?.com?`<div>${escapeXml(S.ent.com||'')}</div>`:''}</div>`;
+
+  // Terrain — Points sensibles
+  h+=`<h2>Points sensibles</h2>`;
+  (S.sens||[]).forEach((o,i)=>{
+    h+=`<div class="card"><strong>Point sensible ${i+1}</strong><ul>
+      <li>Catégorie : ${escapeXml(o.cat||'')}</li>
+      <li>GPS : ${o.lat!=null ? o.lat.toFixed(5)+', '+o.lon.toFixed(5) : 'non relevé'}</li>
+      ${o.other? `<li>Précision : ${escapeXml(o.other)}</li>`:''}
+    </ul>${o.comment?`<div>${escapeXml(o.comment||'')}</div>`:''}</div>`;
+  });
+
+  // K — Décision
+  h+=`<h2>Décision & arbitrage</h2>`;
+  h+=`<div class="card"><ul>
+    <li>Intérêt : ${escapeXml(S.bureau?.interest||'')}</li>
+    <li>Décision : ${escapeXml(S.bureau?.decision||'')}</li>
+    <li>Potentiel mise en tourisme : ${escapeXml(S.bureau?.tour_pot||'')}</li>
+    <li>Entretien annuel : ${escapeXml(S.ent?.jh||'')} JH/an</li>
+  </ul>${S.bureau?.arg?`<div>${escapeXml(S.bureau.arg||'')}</div>`:''}</div>`;
+
+  return h;
+}
+
+function renduHTML(){
+  const p=S.project||{};
+  const it=S.bureau?.it||{};
+  const env=S.bureau?.env||{};
+  const plan=S.bureau?.plan||{};
+
+  const nSig = (S.sig||[]).length;
+  const nBal = (S.bal?.sections||[]).length;
+  const nTrav = (S.trav||[]).length;
+  const nSens = (S.sens||[]).length;
+
+  const fmtGPS = (o)=> (o && o.lat!=null && o.lon!=null) ? (Number(o.lat).toFixed(5)+", "+Number(o.lon).toFixed(5)) : '—';
+  const esc = escapeXml;
+
+  function photoBlock(prefix, idx, n){
+    if(!n || n<1) return '';
+    let h = `<div class="media-grid">`;
+    for(let i=1;i<=n;i++){
+      const src = `photos/${prefix}_${idx}_${i}.jpg`;
+      h += `<figure class="ph"><img src="${src}" alt="${prefix}_${idx}_${i}"><figcaption>${prefix} #${idx} — photo ${i}</figcaption></figure>`;
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function audioBlock(prefix, idx, refs){
+    const arr = refs || [];
+    if(!arr.length) return '';
+    let h = `<div class="audio-list">`;
+    for(let i=0;i<arr.length;i++){
+      const ref = arr[i]||{};
+      const ext = extFromMime(ref.type || 'audio/webm');
+      const src = (prefix==='PROJET') ? `audios/PROJET_${i+1}.${ext}` : `audios/${prefix}_${idx}_${i+1}.${ext}`;
+      const label = ref.name ? esc(ref.name) : `Audio ${i+1}`;
+      h += `<div class="audio-item"><div class="audio-label">🎧 <span class="editable" data-path="${prefix==='PROJET' ? `projectAudios[${i}].name` : `__ignore__`}">${label}</span></div><audio controls preload="none" src="${src}"></audio></div>`;
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function fieldRow(label, value, path){
+    const v = (value==null) ? '' : String(value);
+    return `<div class="kv"><div class="k">${esc(label)}</div><div class="v editable" data-path="${esc(path)}">${esc(v)}</div></div>`;
+  }
+
+  function noteBlock(title, value, path){
+    const v = (value==null) ? '' : String(value);
+    return `<div class="small"><strong>${esc(title)}</strong><div class="note editable" data-path="${esc(path)}">${esc(v)}</div></div>`;
+  }
+
+  function sectionTitle(title, sub){
+    return `<div class="sec-title"><h2>${esc(title)}</h2>${sub?`<div class="sec-sub">${esc(sub)}</div>`:''}</div>`;
+  }
+
+  const safeKey = (s)=> String(s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9_-]/g,'_').replace(/_+/g,'_').replace(/^_+|_+$/g,'').slice(0,60);
+  const docKey = `APN_RESTIT_${safeKey(p.name||'PROJET')}_${safeKey(p.date||'')}`;
+
+  // Évite la fermeture prématurée de la balise script (JSON)
+  const originalJson = JSON.stringify(S).replace(/</g,'\\u003c');
+
+  let h = `<!doctype html>
+<html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (v1.12.0)</title>
+<title>Fiche projet itinéraire – Restitution (1.12.1)</title>
 <style>
-  :root{--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f8fafc;--card:#ffffff;--accent:#0f766e;--accent2:#1e40af;--warn:#b45309;}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);}
-  header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line);}
-  .bar{max-width:980px;margin:auto;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
-  .title{display:flex;flex-direction:column;gap:2px}
-  .title h1{margin:0;font-size:1.05rem;line-height:1.2}
-  .sub{font-size:.85rem;color:var(--muted)}
-  .tools{display:flex;gap:8px;flex-wrap:wrap}
-  button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;font-weight:650}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  button.secondary{background:var(--accent2);border-color:var(--accent2);color:#fff}
-  button.ghost{background:#fff}
-  button.danger{background:#b91c1c;border-color:#b91c1c;color:#fff}
-  main{max-width:980px;margin:auto;padding:14px 12px 42px}
-  .notice{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:12px;padding:10px 12px;margin:10px 0;font-size:.92rem}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
-  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-  .sec-head h2{margin:0;font-size:1.0rem}
-  .badge{font-size:.72rem;padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
-  .badge.terrain{background:#065f46}
-  .badge.bureau{background:#1e40af}
-  .kv{display:grid;grid-template-columns:190px 1fr;gap:10px;padding:6px 0;border-top:1px dashed var(--line)}
-  .kv:first-child{border-top:none}
-  .k{color:var(--muted);font-size:.86rem}
-  .v{font-size:.95rem;line-height:1.25}
-  .val{display:inline-block;min-width:2ch;padding:2px 4px;border-radius:6px}
-  .val.multiline{display:block;white-space:pre-wrap}
-  .edit-on .val[data-path]{outline:1px dashed rgba(15,118,110,.55);background:rgba(15,118,110,.06)}
-  .edit-on .val[data-path]:focus{outline:2px solid rgba(15,118,110,.65);background:#fff}
-  .muted{color:var(--muted)}
-  .obj{border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0;background:#f9fafb}
-  .obj h3{margin:0 0 6px;font-size:.98rem;font-style:italic}
-  .media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
-  .media-grid img{width:100%;border-radius:10px;border:1px solid var(--line)}
-  .audio{margin-top:8px}
-  .audio audio{width:100%}
-  .footer-note{font-size:.82rem;color:var(--muted);margin-top:10px}
-  @media print {
-    header{position:static;background:#fff;border:none}
-    .tools,.notice{display:none !important}
-    body{background:#fff}
-    main{padding:0}
-    .card{break-inside:avoid}
-    .obj{break-inside:avoid}
-  }
+:root{
+  --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
+  --bg:#f9fafb; --card:#ffffff; --accent:#0f766e; --danger:#b91c1c;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.page{max-width:980px;margin:0 auto;padding:28px 18px 60px}
+.hero{background:linear-gradient(135deg, rgba(15,118,110,.10), rgba(30,64,175,.08));border-bottom:1px solid var(--line)}
+.hero .page{padding-bottom:22px}
+h1{margin:0;font-size:1.65rem;letter-spacing:-.02em}
+.meta{margin-top:10px;display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.small{color:var(--muted);font-size:.9rem;line-height:1.35}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.85rem}
+.badge strong{font-weight:800}
+hr.sep{border:none;border-top:1px solid var(--line);margin:20px 0}
+
+.sec-title{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:18px 0 10px}
+.sec-title h2{margin:0;font-size:1.15rem}
+.sec-sub{color:var(--muted);font-size:.92rem}
+
+.kvgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:10px;padding:8px 0;border-top:1px dashed var(--line)}
+.kv:first-child{border-top:none}
+.k{color:var(--muted);font-size:.92rem}
+.v{font-weight:650}
+
+.obj{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:10px 0;padding:12px}
+.obj-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.obj-title{font-weight:900;font-size:1.02rem}
+.obj-sub{color:var(--muted);font-size:.9rem;margin-top:2px}
+.obj-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:.78rem;border:1px solid var(--line);background:#fff;border-radius:999px;padding:2px 8px;color:var(--muted)}
+
+.note{white-space:pre-wrap;margin-top:8px;color:#111827}
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:10px;margin-top:10px}
+.ph{margin:0}
+.ph img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff}
+.ph figcaption{margin-top:6px;color:var(--muted);font-size:.82rem}
+.audio-list{display:grid;gap:10px;margin-top:10px}
+.audio-item{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px}
+.audio-label{font-weight:750;margin-bottom:6px}
+audio{width:100%}
+
+/* Editing */
+.toolbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}
+.toolbar .page{padding:10px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-weight:700;cursor:pointer}
+.toolbar button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.toolbar button.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.status{color:var(--muted);font-size:.9rem}
+.editable{border-radius:8px}
+.editable:empty:before{content:'—';color:var(--muted)}
+.edit-on .editable{outline:2px dashed rgba(15,118,110,.25);padding:2px 4px}
+.edit-on .editable:focus{outline:2px solid rgba(15,118,110,.55);background:rgba(15,118,110,.06)}
+
+/* Print */
+@media (max-width:760px){
+  .meta{grid-template-columns:1fr}
+  .kvgrid{grid-template-columns:1fr}
+  .kv{grid-template-columns:140px 1fr}
+}
+@media print{
+  body{background:#fff}
+  .hero{background:#fff}
+  .page{padding:18px 14px}
+  .card,.obj{break-inside:avoid}
+  .noprint{display:none !important}
+  .editable{outline:none !important;padding:0 !important}
+}
 </style>
-</head>
-<body>
-<header>
-  <div class="bar">
-    <div class="title">
-      <h1 id="h_title">Fiche projet itinéraire</h1>
-      <div class="sub" id="h_sub"></div>
+</head><body>
+
+<div class="toolbar noprint">
+  <div class="page">
+    <button id="btnEdit" class="primary">✏️ Modifier</button>
+    <button id="btnSave">💾 Enregistrer (local)</button>
+    <button id="btnJson">⬇️ Télécharger JSON</button>
+    <button id="btnPrint">🖨️ Imprimer / PDF</button>
+    <button id="btnReset" class="danger">↩️ Annuler les modifs</button>
+    <span class="status" id="status">Restitution éditable (corrections bureau) • clé : ${esc(docKey)}</span>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="page">
+    <h1><span class="editable" data-path="project.name">${esc(p.name||'Fiche projet itinéraire')}</span></h1>
+    <div class="small">
+      <span class="editable" data-path="project.type">${esc(p.type||'')}</span>
+      ${p.commune?` • Commune de départ : <span class="editable" data-path="project.commune">${esc(p.commune)}</span>`:` • Commune de départ : <span class="editable" data-path="project.commune"></span>`}
+      ${p.date?` • Date : <span class="editable" data-path="project.date">${esc(p.date)}</span>`:` • Date : <span class="editable" data-path="project.date"></span>`}
     </div>
-    <div class="tools">
-      <button id="btnEdit" class="secondary" type="button" onclick="toggleEdit()">✏️ Modifier</button>
-      <button class="primary" type="button" onclick="saveEdits()">💾 Enregistrer (local)</button>
-      <button class="ghost" type="button" onclick="downloadJSON()">⬇️ Télécharger JSON</button>
-      <button class="ghost" type="button" onclick="window.print()">🖨️ Imprimer / PDF</button>
-      <button class="danger" type="button" onclick="resetLocal()">↩︎ Réinitialiser</button>
+
+    <div class="badges">
+      <span class="badge">Signalétique <strong>${nSig}</strong></span>
+      <span class="badge">Balisage (sections) <strong>${nBal}</strong></span>
+      <span class="badge">Travaux <strong>${nTrav}</strong></span>
+      <span class="badge">Points sensibles <strong>${nSens}</strong></span>
+      <span class="badge">Entretien <strong><span class="editable" data-path="ent.jh">${esc(S.ent?.jh||'')}</span></strong> JH/an</span>
+    </div>
+
+    <div class="meta">
+      <div class="card">
+        <div style="font-weight:900;margin-bottom:6px">Identification</div>
+        <div class="kvgrid">
+          <div>
+            <div class="small"><strong>Participants</strong></div>
+            <div class="small">
+              <span class="editable" data-path="project.part1">${esc(p.part1||'')}</span>
+              <span>${p.part2?` / `:''}</span>
+              <span class="editable" data-path="project.part2">${esc(p.part2||'')}</span>
+            </div>
+          </div>
+          <div>
+            <div class="small"><strong>Version</strong></div>
+            <div class="small">1.12.1</div>
+          </div>
+        </div>
+        <hr class="sep">
+        ${noteBlock("Commentaire général", p.com||'', "project.com")}
+        ${audioBlock('PROJET', 0, S.projectAudios||[])}
+      </div>
+
+      <div class="card">
+        <div style="font-weight:900;margin-bottom:6px">Décision</div>
+        <div class="kvgrid">
+          ${fieldRow("Intérêt (/5)", S.bureau?.interest||'', "bureau.interest")}
+          ${fieldRow("Décision", S.bureau?.decision||'', "bureau.decision")}
+          ${fieldRow("Mise en tourisme", S.bureau?.tour_pot||'', "bureau.tour_pot")}
+          ${fieldRow("Coût initial (€)", S.bureau?.cost_init_manual||'', "bureau.cost_init_manual")}
+        </div>
+        <hr class="sep">
+        ${noteBlock("Argumentaire", S.bureau?.arg||'', "bureau.arg")}
+      </div>
     </div>
   </div>
-</header>
+</div>
 
-<main>
-  <div class="notice">
-    <strong>Mode bureau :</strong> tu peux corriger / compléter cette restitution directement (typos, commentaires, ajustements).
-    Les modifications sont enregistrées <em>localement sur ce navigateur</em>. Aucun ré-export ZIP n’est nécessaire pour obtenir une fiche finale imprimable.
+<div class="page">
+  ${sectionTitle("Caractéristiques de l’itinéraire")}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Type de parcours", it.route_type||'', "bureau.it.route_type")}
+      ${fieldRow("Thème principal", it.theme||'', "bureau.it.theme")}
+      ${fieldRow("Longueur (km)", it.length||'', "bureau.it.length")}
+      ${fieldRow("Dénivelé + (m)", it.dplus||'', "bureau.it.dplus")}
+      ${fieldRow("Dénivelé – (m)", it.dminus||'', "bureau.it.dminus")}
+      ${fieldRow("Temps estimé", it.time||'', "bureau.it.time")}
+      ${fieldRow("Public cible", it.public||'', "bureau.it.public")}
+      ${fieldRow("Saisonnalité", it.season||'', "bureau.it.season")}
+      ${fieldRow("Sens conseillé", it.direction||'', "bureau.it.direction")}
+    </div>
+    <hr class="sep">
+    ${noteBlock("Commentaires", it.com||'', "bureau.it.com")}
   </div>
 
-  <div id="app"></div>
-
-  <div class="footer-note">
-    Restitution générée par la PWA (v1.12.0). Pour lire les audios, garde le dossier <code>audios/</code> à côté de ce fichier.
+  ${sectionTitle("Contraintes (nature & règles)")}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Enjeux (liste)", (env.enjeux||[]).join(', '), "bureau.env.enjeux")}
+      ${fieldRow("Zones traversées (liste)", (env.zones||[]).join(', '), "bureau.env.zones")}
+    </div>
+    <hr class="sep">
+    ${noteBlock("Commentaires (enjeux)", env.enjeux_com||'', "bureau.env.enjeux_com")}
+    <div style="margin-top:10px"></div>
+    ${noteBlock("Contraintes identifiées", env.constraints||'', "bureau.env.constraints")}
+    <div style="margin-top:10px"></div>
+    ${noteBlock("Procédures / vigilances", env.procedures||'', "bureau.env.procedures")}
   </div>
-</main>
+
+  ${sectionTitle("Plan d’actions & phasage")}
+  <div class="card">
+    ${noteBlock("Court terme", plan.short||'', "bureau.plan.short")}
+    <div style="margin-top:10px"></div>
+    ${noteBlock("Moyen terme", plan.mid||'', "bureau.plan.mid")}
+    <div style="margin-top:10px"></div>
+    ${noteBlock("Phasage", plan.phasage||'', "bureau.plan.phasage")}
+    <div style="margin-top:10px"></div>
+    ${noteBlock("Commentaires", plan.com||'', "bureau.plan.com")}
+  </div>
+
+  <hr class="sep">
+
+  ${sectionTitle("Signalétique", `${nSig} objet(s)`)}
+  ${(S.sig||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Signalétique #${i+1}</div>
+          <div class="obj-sub">GPS : ${fmtGPS(o)}</div>
+        </div>
+        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
+      </div>
+      <div class="kvgrid">
+        ${fieldRow("Type", o.type||'', `sig[${i}].type`)}
+        ${fieldRow("Style", o.style||'', `sig[${i}].style`)}
+        ${fieldRow("Action", o.action||'', `sig[${i}].action`)}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Commentaire", o.comment||'', `sig[${i}].comment`)}
+      ${photoBlock('SIG', i+1, (o.photos||[]).length)}
+      ${audioBlock('SIG', i+1, o.audios||[])}
+    </div>
+  `).join('') || `<div class="small">Aucun objet signalétique saisi.</div>`}
+
+  ${sectionTitle("Balisage", `${nBal} section(s)`)}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Types rencontrés (liste)", (S.bal?.types||[]).join(', '), "bal.types")}
+      ${fieldRow("Action globale", S.bal?.action_global||'', "bal.action_global")}
+    </div>
+    <hr class="sep">
+    ${noteBlock("Commentaire global", S.bal?.com_global||'', "bal.com_global")}
+  </div>
+
+  ${(S.bal?.sections||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Section balisage #${i+1}</div>
+          <div class="obj-sub">GPS début : ${fmtGPS(o)}</div>
+        </div>
+        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
+      </div>
+      <div class="kvgrid">
+        ${fieldRow("Action", o.action||'', `bal.sections[${i}].action`)}
+        ${fieldRow("Linéaire (m)", o.linear||'', `bal.sections[${i}].linear`)}
+        ${fieldRow("Temps (JH)", o.jh||'', `bal.sections[${i}].jh`)}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Commentaire", o.comment||'', `bal.sections[${i}].comment`)}
+      ${photoBlock('BAL', i+1, (o.photos||[]).length)}
+      ${audioBlock('BAL', i+1, o.audios||[])}
+    </div>
+  `).join('')}
+
+  ${sectionTitle("Travaux de réouverture", `${nTrav} objet(s)`)}
+  ${(S.trav||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Travail #${i+1}</div>
+          <div class="obj-sub">GPS début : ${fmtGPS(o)}</div>
+        </div>
+        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
+      </div>
+      <div class="kvgrid">
+        ${fieldRow("Type", o.type||'', `trav[${i}].type`)}
+        ${fieldRow("Linéaire (m)", o.linear||'', `trav[${i}].linear`)}
+        ${fieldRow("Temps (JH)", o.jh||'', `trav[${i}].jh`)}
+        ${fieldRow("Précision", o.other||'', `trav[${i}].other`)}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Commentaire", o.comment||'', `trav[${i}].comment`)}
+      ${photoBlock('TRAV', i+1, (o.photos||[]).length)}
+      ${audioBlock('TRAV', i+1, o.audios||[])}
+    </div>
+  `).join('') || `<div class="small">Aucun travail saisi.</div>`}
+
+  ${sectionTitle("Entretien annuel estimé")}
+  <div class="card">
+    <div class="kvgrid">
+      ${fieldRow("Volume (JH/an)", S.ent?.jh||'', "ent.jh")}
+      ${fieldRow("Natures (liste)", (S.ent?.nat||[]).join(', '), "ent.nat")}
+    </div>
+    <hr class="sep">
+    ${noteBlock("Commentaire", S.ent?.com||'', "ent.com")}
+  </div>
+
+  ${sectionTitle("Points sensibles & pb de tronçons", `${nSens} objet(s)`)}
+  ${(S.sens||[]).map((o,i)=>`
+    <div class="obj">
+      <div class="obj-head">
+        <div>
+          <div class="obj-title">Point sensible #${i+1}</div>
+          <div class="obj-sub">GPS : ${fmtGPS(o)}</div>
+        </div>
+        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
+      </div>
+      <div class="kvgrid">
+        ${fieldRow("Catégorie", o.cat||'', `sens[${i}].cat`)}
+        ${fieldRow("Précision", o.other||'', `sens[${i}].other`)}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Commentaire", o.comment||'', `sens[${i}].comment`)}
+      ${photoBlock('SENS', i+1, (o.photos||[]).length)}
+      ${audioBlock('SENS', i+1, o.audios||[])}
+    </div>
+  `).join('') || `<div class="small">Aucun point sensible saisi.</div>`}
+
+</div>
 
 <script>
-const ORIGINAL = ${safeJson};
+const ORIGINAL = ${originalJson};
 let DATA = JSON.parse(JSON.stringify(ORIGINAL));
 const DOC_KEY = ${JSON.stringify(docKey)};
 
-function extFromMime(type){
-  const t=String(type||'').toLowerCase();
-  if(t.includes('ogg')) return 'ogg';
-  if(t.includes('mp4') || t.includes('m4a')) return 'm4a';
-  if(t.includes('wav')) return 'wav';
-  if(t.includes('webm')) return 'webm';
-  return 'webm';
+const ARRAY_FIELDS = new Set([
+  "bal.types",
+  "ent.nat",
+  "bureau.env.enjeux",
+  "bureau.env.zones"
+]);
+
+const NUMBER_FIELDS = new Set([
+  "bureau.it.length",
+  "bureau.it.dplus",
+  "bureau.it.dminus",
+  "ent.jh"
+]);
+
+function pathToParts(path){
+  return String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean);
 }
 
-function esc(s){
-  return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-}
-
-function pathTokens(path){
-  const out=[];
-  path.split('.').forEach(part=>{
-    const re=/([^[\]]+)|\[(\d+)\]/g;
-    let m;
-    while((m=re.exec(part))){
-      if(m[1]) out.push(m[1]);
-      if(m[2]!=null) out.push(parseInt(m[2],10));
-    }
-  });
-  return out;
-}
-
-function getByPath(obj, path){
-  const t=pathTokens(path);
-  let cur=obj;
-  for(const k of t){
+function getByPath(root, path){
+  const parts = pathToParts(path);
+  let cur = root;
+  for(const k of parts){
     if(cur==null) return undefined;
-    cur=cur[k];
+    cur = cur[k];
   }
   return cur;
 }
 
-function setByPath(obj, path, value){
-  const t=pathTokens(path);
-  let cur=obj;
-  for(let i=0;i<t.length-1;i++){ cur = cur[t[i]]; if(cur==null) return; }
-  cur[t[t.length-1]] = value;
-}
-
-function fmt(v){
-  if(v==null) return '';
-  if(Array.isArray(v)) return v.join(', ');
-  return String(v);
-}
-
-function ed(path, value, type='', multiline=false){
-  const cls = 'val' + (multiline ? ' multiline' : '');
-  const tag = multiline ? 'div' : 'span';
-  return `<${tag} class="${cls}" data-path="${esc(path)}" data-type="${esc(type)}" tabindex="0">${esc(fmt(value))}</${tag}>`;
-}
-
-function kv(label, path, value, type='', multiline=false){
-  return `<div class="kv"><div class="k">${esc(label)}</div><div class="v">${ed(path,value,type,multiline)}</div></div>`;
-}
-
-function photosBlock(arr){
-  const pics = (arr && arr.photos) ? arr.photos : [];
-  if(!pics.length) return '';
-  let h = `<div class="media-grid">`;
-  for(let i=0;i<pics.length;i++){ h += `<img alt="photo_${i+1}" src="${pics[i]}">`; }
-  h += `</div>`;
-  return h;
-}
-
-function audioBlock(prefix, objIndex, refs){
-  const list = refs || [];
-  if(!list.length) return '';
-  let h = `<div class="audio">`;
-  for(let i=0;i<list.length;i++){ 
-    const ref = list[i]||{};
-    const ext = ref.ext || extFromMime(ref.type||'audio/webm');
-    const src = (prefix==='PROJET') ? `audios/PROJET_${i+1}.${ext}` : `audios/${prefix}_${objIndex}_${i+1}.${ext}`;
-    const label = ref.name ? ref.name : `Audio ${i+1}`;
-    h += `<div style="margin:8px 0">
-      <div class="muted">🎧 ${esc(label)}</div>
-      <audio controls preload="none" data-src="${esc(src)}"></audio>
-    </div>`;
+function setByPath(root, path, value){
+  const parts = pathToParts(path);
+  let cur = root;
+  for(let i=0;i<parts.length-1;i++){
+    const k = parts[i];
+    const next = parts[i+1];
+    if(cur[k]==null){
+      cur[k] = (/^\\d+$/.test(next)) ? [] : {};
+    }
+    cur = cur[k];
   }
-  h += `</div>`;
-  return h;
+  cur[parts[parts.length-1]] = value;
 }
 
-function render(){
-  const p = DATA.project || {};
-
-  document.getElementById('h_title').textContent = p.name || 'Fiche projet itinéraire';
-  const sub = [p.type||'', p.commune||'', p.date||''].filter(Boolean).join(' • ');
-  document.getElementById('h_sub').textContent = sub;
-
-  let out='';
-
-  out += `<div class="card">
-    <div class="sec-head"><h2>A. Identification</h2><span class="badge terrain">terrain</span></div>
-    ${kv('Nom / code', 'project.name', p.name)}
-    ${kv('Type de projet', 'project.type', p.type)}
-    ${kv('Commune de départ', 'project.commune', p.commune)}
-    ${kv('Date', 'project.date', p.date)}
-    ${kv('Participant (technique)', 'project.part1', p.part1)}
-    ${kv('Participant (développement)', 'project.part2', p.part2)}
-    ${kv('Commentaire général', 'project.com', p.com, 'text', true)}
-    ${audioBlock('PROJET', 0, DATA.projectAudios||[])}
-  </div>`;
-
-  out += `<div class="card">
-    <div class="sec-head"><h2>B. Signalétique</h2><span class="badge terrain">terrain</span></div>
-    <div class="muted">Signalétique = mobilier implanté (point).</div>
-    ${(DATA.sig||[]).map((o,idx)=>{
-      const n=idx+1;
-      return `<div class="obj">
-        <h3>Signalétique #${n}</h3>
-        ${kv('Type', `sig[${idx}].type`, o.type)}
-        ${kv('Style', `sig[${idx}].style`, o.style)}
-        ${kv('Action', `sig[${idx}].action`, o.action)}
-        ${kv('Latitude', `sig[${idx}].lat`, o.lat)}
-        ${kv('Longitude', `sig[${idx}].lon`, o.lon)}
-        ${kv('Commentaire', `sig[${idx}].comment`, o.comment, 'text', true)}
-        ${photosBlock(o)}
-        ${audioBlock('SIG', n, o.audios||[])}
-      </div>`;
-    }).join('')}
-  </div>`;
-
-  const bal = DATA.bal || {};
-  out += `<div class="card">
-    <div class="sec-head"><h2>C. Balisage</h2><span class="badge terrain">terrain</span></div>
-    ${kv('Types rencontrés', 'bal.types', bal.types||[], 'array')}
-    ${kv('Action globale', 'bal.action_global', bal.action_global)}
-    ${kv('Commentaire global', 'bal.com_global', bal.com_global, 'text', true)}
-    ${(bal.sections||[]).map((o,idx)=>{
-      const n=idx+1;
-      return `<div class="obj">
-        <h3>Section balisage #${n}</h3>
-        ${kv('Action', `bal.sections[${idx}].action`, o.action)}
-        ${kv('Linéaire (m)', `bal.sections[${idx}].linear`, o.linear)}
-        ${kv('Temps (JH)', `bal.sections[${idx}].jh`, o.jh)}
-        ${kv('Latitude (début)', `bal.sections[${idx}].lat`, o.lat)}
-        ${kv('Longitude (début)', `bal.sections[${idx}].lon`, o.lon)}
-        ${photosBlock(o)}
-        ${audioBlock('BAL', n, o.audios||[])}
-      </div>`;
-    }).join('')}
-  </div>`;
-
-  out += `<div class="card">
-    <div class="sec-head"><h2>D. Travaux de réouverture</h2><span class="badge terrain">terrain</span></div>
-    ${(DATA.trav||[]).map((o,idx)=>{
-      const n=idx+1;
-      return `<div class="obj">
-        <h3>Travail #${n}</h3>
-        ${kv('Type', `trav[${idx}].type`, o.type)}
-        ${kv('Linéaire (m)', `trav[${idx}].linear`, o.linear)}
-        ${kv('Temps (JH)', `trav[${idx}].jh`, o.jh)}
-        ${kv('Précision (autres)', `trav[${idx}].other`, o.other)}
-        ${kv('Latitude (début)', `trav[${idx}].lat`, o.lat)}
-        ${kv('Longitude (début)', `trav[${idx}].lon`, o.lon)}
-        ${kv('Commentaire', `trav[${idx}].comment`, o.comment, 'text', true)}
-        ${photosBlock(o)}
-        ${audioBlock('TRAV', n, o.audios||[])}
-      </div>`;
-    }).join('')}
-  </div>`;
-
-  const ent = DATA.ent || {};
-  out += `<div class="card">
-    <div class="sec-head"><h2>E. Entretien annuel estimé</h2><span class="badge terrain">terrain</span></div>
-    ${kv('Volume (JH/an)', 'ent.jh', ent.jh)}
-    ${kv('Nature dominante', 'ent.nat', ent.nat||[], 'array')}
-    ${kv('Commentaire', 'ent.com', ent.com, 'text', true)}
-  </div>`;
-
-  out += `<div class="card">
-    <div class="sec-head"><h2>F. Points sensibles & pb de tronçons</h2><span class="badge terrain">terrain</span></div>
-    ${(DATA.sens||[]).map((o,idx)=>{
-      const n=idx+1;
-      return `<div class="obj">
-        <h3>Point sensible #${n}</h3>
-        ${kv('Catégorie', `sens[${idx}].cat`, o.cat)}
-        ${kv('Précision (autres)', `sens[${idx}].other`, o.other)}
-        ${kv('Latitude', `sens[${idx}].lat`, o.lat)}
-        ${kv('Longitude', `sens[${idx}].lon`, o.lon)}
-        ${kv('Commentaire', `sens[${idx}].comment`, o.comment, 'text', true)}
-        ${photosBlock(o)}
-        ${audioBlock('SENS', n, o.audios||[])}
-      </div>`;
-    }).join('')}
-  </div>`;
-
-  const it = (DATA.bureau && DATA.bureau.it) ? DATA.bureau.it : {};
-  out += `<div class="card">
-    <div class="sec-head"><h2>G. Caractéristiques de l’itinéraire</h2><span class="badge bureau">bureau</span></div>
-    ${kv('Type de parcours', 'bureau.it.route_type', it.route_type)}
-    ${kv('Thème principal', 'bureau.it.theme', it.theme)}
-    ${kv('Longueur (km)', 'bureau.it.length', it.length)}
-    ${kv('Dénivelé + (m)', 'bureau.it.dplus', it.dplus)}
-    ${kv('Dénivelé – (m)', 'bureau.it.dminus', it.dminus)}
-    ${kv('Temps estimé', 'bureau.it.time', it.time)}
-    ${kv('Public cible', 'bureau.it.public', it.public)}
-    ${kv('Saisonnalité', 'bureau.it.season', it.season)}
-    ${kv('Sens conseillé', 'bureau.it.direction', it.direction)}
-    ${kv('Commentaires', 'bureau.it.com', it.com, 'text', true)}
-  </div>`;
-
-  const env = (DATA.bureau && DATA.bureau.env) ? DATA.bureau.env : {};
-  out += `<div class="card">
-    <div class="sec-head"><h2>H. Contraintes (nature & règles)</h2><span class="badge bureau">bureau</span></div>
-    ${kv('Espaces / zonages traversés', 'bureau.env.zones', env.zones||[], 'array')}
-    ${kv('Enjeux identifiés', 'bureau.env.enjeux', env.enjeux||[], 'array')}
-    ${kv('Commentaires enjeux', 'bureau.env.enjeux_com', env.enjeux_com, 'text', true)}
-    ${kv('Contraintes environnementales', 'bureau.env.constraints', env.constraints, 'text', true)}
-    ${kv('Procédures / vigilances', 'bureau.env.procedures', env.procedures, 'text', true)}
-  </div>`;
-
-  const plan = (DATA.bureau && DATA.bureau.plan) ? DATA.bureau.plan : {};
-  out += `<div class="card">
-    <div class="sec-head"><h2>I. Plan d’actions & phasage</h2><span class="badge bureau">bureau</span></div>
-    ${kv('Actions prioritaires (court terme)', 'bureau.plan.short', plan.short, 'text', true)}
-    ${kv('Actions à moyen terme', 'bureau.plan.mid', plan.mid, 'text', true)}
-    ${kv('Phasage prévisionnel', 'bureau.plan.phasage', plan.phasage, 'text', true)}
-    ${kv('Commentaires', 'bureau.plan.com', plan.com, 'text', true)}
-  </div>`;
-
-  out += `<div class="card">
-    <div class="sec-head"><h2>K. Décision & arbitrage</h2><span class="badge bureau">bureau</span></div>
-    ${kv('Niveau d’intérêt global', 'bureau.interest', DATA.bureau?.interest)}
-    ${kv('Décision', 'bureau.decision', DATA.bureau?.decision)}
-    ${kv('Potentiel mise en tourisme', 'bureau.tour_pot', DATA.bureau?.tour_pot)}
-    ${kv('Argumentaire', 'bureau.arg', DATA.bureau?.arg, 'text', true)}
-    ${kv('Coût initial (manuel €)', 'bureau.cost_init_manual', DATA.bureau?.cost_init_manual)}
-    ${kv('Entretien annuel (JH/an)', 'ent.jh', ent.jh)}
-  </div>`;
-
-  document.getElementById('app').innerHTML = out;
-
-  document.querySelectorAll('audio[data-src]').forEach(a=>{
-    a.src = a.getAttribute('data-src');
-  });
+function parseValue(path, txt){
+  const raw = String(txt ?? '').trim();
+  if(ARRAY_FIELDS.has(path)){
+    return raw ? raw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  }
+  if(NUMBER_FIELDS.has(path)){
+    const n = Number(raw.replace(',','.'));
+    return Number.isFinite(n) ? n : (raw ? raw : "");
+  }
+  return raw;
 }
 
-function toggleEdit(){
-  const root = document.documentElement;
-  const on = root.classList.toggle('edit-on');
-  const btn = document.getElementById('btnEdit');
-  btn.textContent = on ? '✅ Terminer' : '✏️ Modifier';
-  document.querySelectorAll('.val[data-path]').forEach(el=>{
-    el.contentEditable = on ? 'true' : 'false';
-  });
-}
-
-function parseTyped(text, type){
-  const t = String(text ?? '').trim();
-  if(type==='array') return t ? t.split(/[,\n]/).map(s=>s.trim()).filter(Boolean) : [];
-  return t;
-}
-
-function captureEdits(){
-  document.querySelectorAll('.val[data-path]').forEach(el=>{
+function applyToDom(obj){
+  document.querySelectorAll('[data-path]').forEach(el=>{
     const path = el.getAttribute('data-path');
-    const type = el.getAttribute('data-type') || '';
-    setByPath(DATA, path, parseTyped(el.innerText, type));
+    if(!path || path==="__ignore__") return;
+    const v = getByPath(obj, path);
+    if(Array.isArray(v)) el.textContent = v.join(', ');
+    else if(v==null) el.textContent = '';
+    else el.textContent = String(v);
   });
 }
 
-function saveEdits(){
-  captureEdits();
+function gatherFromDom(){
+  document.querySelectorAll('[data-path]').forEach(el=>{
+    const path = el.getAttribute('data-path');
+    if(!path || path==="__ignore__") return;
+    const v = parseValue(path, el.textContent);
+    setByPath(DATA, path, v);
+  });
+}
+
+function setEditMode(on){
+  document.body.classList.toggle('edit-on', !!on);
+  document.querySelectorAll('.editable').forEach(el=>{
+    el.setAttribute('contenteditable', on ? 'true' : 'false');
+    el.setAttribute('spellcheck', 'true');
+  });
+  document.getElementById('btnEdit').textContent = on ? '✅ Terminer' : '✏️ Modifier';
+  document.getElementById('status').textContent = on
+    ? ('Mode modification activé • clé : ' + DOC_KEY)
+    : ('Restitution éditable (corrections bureau) • clé : ' + DOC_KEY);
+}
+
+function toast(msg){
+  const s = document.getElementById('status');
+  s.textContent = msg + ' • clé : ' + DOC_KEY;
+  setTimeout(()=>{ setEditMode(document.body.classList.contains('edit-on')); }, 1200);
+}
+
+document.getElementById('btnEdit').addEventListener('click', ()=>{
+  const on = !document.body.classList.contains('edit-on');
+  setEditMode(on);
+  if(on) toast("Mode modification activé");
+});
+
+document.getElementById('btnSave').addEventListener('click', ()=>{
+  gatherFromDom();
   localStorage.setItem(DOC_KEY, JSON.stringify(DATA));
-  render();
-  if(document.documentElement.classList.contains('edit-on')) toggleEdit();
-  alert('Enregistré (local).');
-}
+  toast("Enregistré (local)");
+});
 
-function downloadJSON(){
-  captureEdits();
+document.getElementById('btnJson').addEventListener('click', ()=>{
+  gatherFromDom();
   const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  const p = DATA.project || {};
-  const safeName = String(p.name||'PROJET_ITINERAIRE').replaceAll(' ','_').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) || 'PROJET_ITINERAIRE';
-  const safeDate = String(p.date||'').replace(/[^0-9-]/g,'');
-  a.download = `${safeName}_${safeDate||'NA'}_corrige.json`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fiche_corrigee_' + DOC_KEY + '.json';
   a.click();
-}
+  toast("JSON téléchargé");
+});
 
-function resetLocal(){
-  if(!confirm('Supprimer les corrections locales (ce navigateur) et revenir à la version exportée ?')) return;
+document.getElementById('btnPrint').addEventListener('click', ()=>{
+  window.print();
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm("Annuler les modifications enregistrées localement pour cette fiche ?")) return;
   localStorage.removeItem(DOC_KEY);
   DATA = JSON.parse(JSON.stringify(ORIGINAL));
-  render();
-  alert('Réinitialisé.');
-}
+  applyToDom(DATA);
+  setEditMode(false);
+  toast("Modifs annulées");
+});
 
 (function init(){
-  try{
-    const saved = localStorage.getItem(DOC_KEY);
-    if(saved) DATA = JSON.parse(saved);
-  }catch(_e){}
-  render();
+  const saved = localStorage.getItem(DOC_KEY);
+  if(saved){
+    try{
+      DATA = JSON.parse(saved);
+      applyToDom(DATA);
+    }catch(e){}
+  }
+  setEditMode(false);
 })();
-</script>
-</body>
-</html>`;
+${'</scr'+'ipt>'}
+
+</body></html>`;
+
+  return h;
 }
 
 async function exportZIP(){
