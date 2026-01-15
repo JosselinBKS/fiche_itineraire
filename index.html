@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.12.1)</title>
+<title>PWA – Fiche projet itinéraire (1.12.2)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.12.1 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.12.2 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -345,7 +345,8 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
       <div>
         <label>Niveau d’intérêt global</label>
         <select id="dec_interest">
-          <option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option>
+          <option value="">_ _</option>
+<option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option>
         </select>
       </div>
       <div>
@@ -398,7 +399,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.12.1"},
+  meta:{version:"1.12.2"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -406,7 +407,7 @@ let S = {
   trav:[],
   ent:{jh:"", nat:[]},
   sens:[],
-  bureau:{interest:"3", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:"",
+  bureau:{interest:"", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:"",
   it:{route_type:"Boucle", theme:"", length:"", dplus:"", dminus:"", time:"", public:"Grand public", season:"Toute l’année", direction:""},
   env:{zones:[], enjeux:[], enjeux_com:"", constraints:"", procedures:""},
   plan:{short:"", mid:"", phasage:""}}
@@ -1209,7 +1210,7 @@ function loadAll(){
   setMulti(ent_nat, S.ent?.nat||[]);
   ent_com.value = S.ent?.com||'';
 
-  dec_interest.value = S.bureau?.interest||'3';
+  dec_interest.value = (S.bureau && (S.bureau.interest!==undefined) ? S.bureau.interest : '');
   dec_go.value = S.bureau?.decision||'GO';
   dec_com.value = S.bureau?.arg||'';
   tour_pot.value = S.bureau?.tour_pot||'Moyen';
@@ -1265,7 +1266,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.12.1"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.12.2"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1318,7 +1319,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.12.1)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.12.2)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1481,18 +1482,19 @@ function renduHTML(){
   const fmtGPS = (o)=> (o && o.lat!=null && o.lon!=null) ? (Number(o.lat).toFixed(5)+", "+Number(o.lon).toFixed(5)) : '—';
   const esc = escapeXml;
 
-  function photoBlock(prefix, idx, n){
+  function photoBlock(prefix, idx, n, photosPath){
     if(!n || n<1) return '';
+    const ppath = esc(String(photosPath||'')); // escape for attribute
     let h = `<div class="media-grid">`;
     for(let i=1;i<=n;i++){
       const src = `photos/${prefix}_${idx}_${i}.jpg`;
-      h += `<figure class="ph"><img src="${src}" alt="${prefix}_${idx}_${i}"><figcaption>${prefix} #${idx} — photo ${i}</figcaption></figure>`;
+      h += `<figure class="ph"><button class="ph-del" type="button" data-ppath="${ppath}" aria-label="Supprimer la photo">✖</button><img src="${src}" alt="${prefix}_${idx}_${i}"><figcaption>${prefix} #${idx} — photo ${i}</figcaption></figure>`;
     }
     h += `</div>`;
     return h;
   }
 
-  function audioBlock(prefix, idx, refs){
+  function audioBlock(prefix, idx, refs){(prefix, idx, refs){
     const arr = refs || [];
     if(!arr.length) return '';
     let h = `<div class="audio-list">`;
@@ -1531,7 +1533,7 @@ function renduHTML(){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.12.1)</title>
+<title>Fiche projet itinéraire – Restitution (1.12.2)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1570,8 +1572,11 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:20px 0}
 
 .note{white-space:pre-wrap;margin-top:8px;color:#111827}
 .media-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:10px;margin-top:10px}
-.ph{margin:0}
+.ph{margin:0;position:relative}
 .ph img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff}
+.ph-del{position:absolute;top:8px;right:8px;border:none;border-radius:999px;width:28px;height:28px;cursor:pointer;
+  background:rgba(185,28,28,.92);color:#fff;display:none}
+.edit-on .ph-del{display:block}
 .ph figcaption{margin-top:6px;color:var(--muted);font-size:.82rem}
 .audio-list{display:grid;gap:10px;margin-top:10px}
 .audio-item{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px}
@@ -1649,7 +1654,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.12.1</div>
+            <div class="small">1.12.2</div>
           </div>
         </div>
         <hr class="sep">
@@ -1734,7 +1739,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `sig[${i}].comment`)}
-      ${photoBlock('SIG', i+1, (o.photos||[]).length)}
+      ${photoBlock('SIG', i+1, (o.photos||[]).length, `sig[${i}].photos`)}
       ${audioBlock('SIG', i+1, o.audios||[])}
     </div>
   `).join('') || `<div class="small">Aucun objet signalétique saisi.</div>`}
@@ -1765,7 +1770,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `bal.sections[${i}].comment`)}
-      ${photoBlock('BAL', i+1, (o.photos||[]).length)}
+      ${photoBlock('BAL', i+1, (o.photos||[]).length, `bal.sections[${i}].photos`)}
       ${audioBlock('BAL', i+1, o.audios||[])}
     </div>
   `).join('')}
@@ -1788,7 +1793,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `trav[${i}].comment`)}
-      ${photoBlock('TRAV', i+1, (o.photos||[]).length)}
+      ${photoBlock('TRAV', i+1, (o.photos||[]).length, `trav[${i}].photos`)}
       ${audioBlock('TRAV', i+1, o.audios||[])}
     </div>
   `).join('') || `<div class="small">Aucun travail saisi.</div>`}
@@ -1819,7 +1824,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `sens[${i}].comment`)}
-      ${photoBlock('SENS', i+1, (o.photos||[]).length)}
+      ${photoBlock('SENS', i+1, (o.photos||[]).length, `sens[${i}].photos`)}
       ${audioBlock('SENS', i+1, o.audios||[])}
     </div>
   `).join('') || `<div class="small">Aucun point sensible saisi.</div>`}
@@ -1832,19 +1837,31 @@ let DATA = JSON.parse(JSON.stringify(ORIGINAL));
 const DOC_KEY = ${JSON.stringify(docKey)};
 
 const ARRAY_FIELDS = new Set([
-  "bal.types",
-  "ent.nat",
-  "bureau.env.enjeux",
-  "bureau.env.zones"
+  "bal.types","ent.nat","bureau.env.enjeux","bureau.env.zones"
 ]);
 
 const NUMBER_FIELDS = new Set([
-  "bureau.it.length",
-  "bureau.it.dplus",
-  "bureau.it.dminus",
-  "ent.jh"
+  "bureau.it.length","bureau.it.dplus","bureau.it.dminus","ent.jh","bureau.cost_init_manual","bureau.interest"
 ]);
 
+const STAR_FIELD = "bureau.interest";
+
+const SELECT_FIELDS = {
+  "project.type": ["Création","Requalification","Étude"],
+  "bal.action_global": ["Maintien","Création","Reprise partielle","Reprise complète"],
+  "bureau.it.route_type": ["Boucle","Aller-retour","Itinérance"],
+  "bureau.it.public": ["Familial","Grand public","Randonneur confirmé"],
+  "bureau.it.season": ["Toute l’année","Hors neige"],
+  "bureau.decision": ["GO","GO sous conditions","NON"],
+  "bureau.tour_pot": ["Faible","Moyen","Fort"]
+};
+
+const MULTI_OPTIONS = {
+  "bal.types": ["PR","GR","GRP","Local","Absent"],
+  "ent.nat": ["Débroussaillage","Élagage","Balisage","Ouvrages","Drainage","Surveillance / chablis"],
+  "bureau.env.enjeux": ["Risque de chutes de blocs","Crues / aléas hydrauliques","Érosion des sentiers","Pastoralisme","Chasse","Autres"],
+  "bureau.env.zones": ["Natura 2000","Site classé / inscrit","Réserve naturelle","ENS","Forêt domaniale / ONF","Autres"]
+};
 function pathToParts(path){
   return String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean);
 }
@@ -1873,48 +1890,162 @@ function setByPath(root, path, value){
   cur[parts[parts.length-1]] = value;
 }
 
-function parseValue(path, txt){
-  const raw = String(txt ?? '').trim();
+function parseValue(path, raw){
+  const s = String(raw==null ? "" : raw).trim();
+  if(path === STAR_FIELD){
+    if(!s || s === "_ _" || s === "__" || s === "—") return "";
+    const n = Number(String(s).replace(",", "."));
+    return Number.isFinite(n) ? n : "";
+  }
   if(ARRAY_FIELDS.has(path)){
-    return raw ? raw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+    if(!s) return [];
+    return s.split(",").map(x=>x.trim()).filter(Boolean);
   }
   if(NUMBER_FIELDS.has(path)){
-    const n = Number(raw.replace(',','.'));
-    return Number.isFinite(n) ? n : (raw ? raw : "");
+    if(!s) return "";
+    const n = Number(String(s).replace(",", "."));
+    return Number.isFinite(n) ? n : s;
   }
-  return raw;
+  return s;
+}
+
+function formatValue(path, v){
+  if(path === STAR_FIELD){
+    if(v==null || v==="" ) return "_ _";
+    const n = Number(v);
+    return (Number.isFinite(n) && n>=1 && n<=5) ? "⭐".repeat(n) : String(v);
+  }
+  if(Array.isArray(v)) return v.join(", ");
+  if(v==null) return "";
+  return String(v);
 }
 
 function applyToDom(obj){
-  document.querySelectorAll('[data-path]').forEach(el=>{
-    const path = el.getAttribute('data-path');
-    if(!path || path==="__ignore__") return;
+  document.querySelectorAll("[data-path]").forEach(el=>{
+    const path = el.getAttribute("data-path");
     const v = getByPath(obj, path);
-    if(Array.isArray(v)) el.textContent = v.join(', ');
-    else if(v==null) el.textContent = '';
-    else el.textContent = String(v);
+
+    if(el.tagName === "SELECT"){
+      if(el.multiple){
+        const arr = Array.isArray(v) ? v : [];
+        Array.from(el.options).forEach(o=>o.selected = arr.includes(o.value));
+      }else{
+        el.value = (v==null ? "" : String(v));
+      }
+      return;
+    }
+    el.textContent = formatValue(path, v);
   });
 }
 
 function gatherFromDom(){
-  document.querySelectorAll('[data-path]').forEach(el=>{
-    const path = el.getAttribute('data-path');
-    if(!path || path==="__ignore__") return;
-    const v = parseValue(path, el.textContent);
+  document.querySelectorAll("[data-path]").forEach(el=>{
+    const path = el.getAttribute("data-path");
+    let v;
+
+    if(el.tagName === "SELECT"){
+      if(el.multiple){
+        v = Array.from(el.options).filter(o=>o.selected).map(o=>o.value);
+      }else{
+        v = el.value;
+      }
+    }else{
+      v = parseValue(path, el.textContent);
+    }
+
+    // Normalize star field
+    if(path === STAR_FIELD){
+      if(v==null || v==="" ) v = "";
+      else{
+        const n = Number(String(v).replace(",", "."));
+        v = Number.isFinite(n) ? n : "";
+      }
+    }
+
     setByPath(DATA, path, v);
   });
 }
 
+function buildSelect(path, v, opts, multiple){
+  const sel = document.createElement("select");
+  sel.className = "editable";
+  sel.setAttribute("data-path", path);
+  sel.setAttribute("data-swap", "1");
+  if(multiple) sel.multiple = true;
+
+  if(path === STAR_FIELD){
+    sel.appendChild(new Option("_ _", ""));
+    for(let i=1;i<=5;i++){
+      sel.appendChild(new Option("⭐".repeat(i), String(i)));
+    }
+    sel.value = (v==null ? "" : String(v));
+    return sel;
+  }
+
+  (opts||[]).forEach(o=>sel.appendChild(new Option(o,o)));
+
+  if(multiple){
+    const arr = Array.isArray(v) ? v : [];
+    Array.from(sel.options).forEach(o=>o.selected = arr.includes(o.value));
+  }else{
+    const sv = (v==null ? "" : String(v));
+    if(sv && !opts.includes(sv)){
+      sel.insertBefore(new Option(sv, sv), sel.firstChild);
+    }
+    sel.value = sv || (sel.options[0] ? sel.options[0].value : "");
+  }
+  return sel;
+}
+
 function setEditMode(on){
-  document.body.classList.toggle('edit-on', !!on);
-  document.querySelectorAll('.editable').forEach(el=>{
-    el.setAttribute('contenteditable', on ? 'true' : 'false');
-    el.setAttribute('spellcheck', 'true');
+  document.body.classList.toggle("edit-on", on);
+  document.querySelectorAll(".editable").forEach(el=>{
+    if(el.tagName !== "SELECT"){
+      el.setAttribute("contenteditable", on ? "true" : "false");
+    }
   });
-  document.getElementById('btnEdit').textContent = on ? '✅ Terminer' : '✏️ Modifier';
-  document.getElementById('status').textContent = on
-    ? ('Mode modification activé • clé : ' + DOC_KEY)
-    : ('Restitution éditable (corrections bureau) • clé : ' + DOC_KEY);
+
+  if(on){
+    // swap spans to selects where appropriate
+    document.querySelectorAll("span.editable[data-path]").forEach(sp=>{
+      const path = sp.getAttribute("data-path");
+      const v = getByPath(DATA, path);
+
+      if(path === STAR_FIELD){
+        const sel = buildSelect(path, v, null, false);
+        sp.replaceWith(sel);
+        return;
+      }
+      if(SELECT_FIELDS[path]){
+        const sel = buildSelect(path, v, SELECT_FIELDS[path], false);
+        sp.replaceWith(sel);
+        return;
+      }
+      if(MULTI_OPTIONS[path]){
+        const sel = buildSelect(path, v, MULTI_OPTIONS[path], true);
+        sp.replaceWith(sel);
+        return;
+      }
+    });
+  }else{
+    // gather values then swap selects back to spans
+    gatherFromDom();
+    document.querySelectorAll("select.editable[data-swap='1']").forEach(sel=>{
+      const path = sel.getAttribute("data-path");
+      const v = getByPath(DATA, path);
+      const sp = document.createElement("span");
+      sp.className = "editable";
+      sp.setAttribute("data-path", path);
+      sp.setAttribute("contenteditable", "false");
+      sp.textContent = formatValue(path, v);
+      sel.replaceWith(sp);
+    });
+  }
+
+  document.getElementById("btnEdit").textContent = on ? "✅ Terminer" : "✏️ Modifier";
+  document.getElementById("status").textContent = on
+    ? ("Mode modification activé • clé : " + DOC_KEY)
+    : ("Restitution éditable (corrections bureau) • clé : " + DOC_KEY);
 }
 
 function toast(msg){
@@ -1934,6 +2065,33 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
   localStorage.setItem(DOC_KEY, JSON.stringify(DATA));
   toast("Enregistré (local)");
 });
+
+// Suppression d’une photo dans la restitution (mode modification)
+document.addEventListener("click", (e)=>{
+  const btn = e.target && e.target.closest ? e.target.closest(".ph-del") : null;
+  if(!btn) return;
+  if(!document.body.classList.contains("edit-on")) return;
+  const fig = btn.closest("figure.ph");
+  if(!fig) return;
+  const grid = fig.parentElement;
+  const ppath = btn.getAttribute("data-ppath") || (grid ? grid.getAttribute("data-ppath") : "");
+  if(!ppath) { fig.remove(); return; }
+
+  // index actuel dans la grille (robuste même après suppressions)
+  const figs = grid ? Array.from(grid.querySelectorAll("figure.ph")) : [fig];
+  const idx = figs.indexOf(fig);
+
+  const arr = getByPath(DATA, ppath);
+  if(Array.isArray(arr) && idx>=0){
+    arr.splice(idx, 1);
+  }
+  fig.remove();
+
+  // persist local
+  localStorage.setItem(DOC_KEY, JSON.stringify(DATA));
+  document.getElementById("status").textContent = "Photo supprimée • clé : " + DOC_KEY;
+});
+
 
 document.getElementById('btnJson').addEventListener('click', ()=>{
   gatherFromDom();
