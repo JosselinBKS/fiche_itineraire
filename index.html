@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.12.3)</title>
+<title>PWA – Fiche projet itinéraire (1.13.0)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.12.3 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.0 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -283,8 +283,67 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 
 <!-- H -->
 <details class="section bureau-section" data-sec="H" data-accordion="free">
-  <summary>H. Contraintes (nature & règles) <span class="badge bureau">bureau</span></summary>
+  <summary>H. Foncier, nature & règles <span class="badge bureau">bureau</span></summary>
   <div class="sec">
+
+    <h3 style="margin:0 0 6px;font-size:1rem">Foncier &amp; cadastre</h3>
+
+    <label>Communes traversées</label>
+    <textarea id="foncier_communes" placeholder="Liste des communes traversées par l’itinéraire…"></textarea>
+
+    <label>Statut du support principal</label>
+    <select id="foncier_support">
+      <option value="">_ _</option>
+      <option>Voie communale</option>
+      <option>Chemin rural</option>
+      <option>Sentier communal</option>
+      <option>Domaine privé communal</option>
+      <option>ONF</option>
+      <option>Autre</option>
+    </select>
+
+    <label>Niveau de sécurisation foncière</label>
+    <select id="foncier_secur">
+      <option value="">_ _</option>
+      <option>Sécurisé</option>
+      <option>À sécuriser</option>
+      <option>Sensible</option>
+      <option>Inconnu</option>
+    </select>
+
+    <label>Blocages fonciers identifiés (multi-choix)</label>
+    <select id="foncier_blocages" multiple>
+      <option>Propriétaire inconnu</option>
+      <option>Indivision</option>
+      <option>Succession en cours</option>
+      <option>Refus / conflit d’usage</option>
+      <option>Bornage / limite incertaine</option>
+      <option>Clôture / fermeture</option>
+      <option>Accès impossible / enclavement</option>
+      <option>BND / données incomplètes</option>
+      <option>Autres</option>
+    </select>
+
+    <label>Démarches / dispositifs pressentis (multi-choix)</label>
+    <select id="foncier_demarches" multiple>
+      <option>Contact propriétaire(s)</option>
+      <option>Convention de passage / accord écrit</option>
+      <option>Servitude</option>
+      <option>Acquisition / échange</option>
+      <option>Classement / régularisation domaniale</option>
+      <option>Médiation / accompagnement</option>
+    </select>
+
+    <label>Parcelles concernées (si utile)</label>
+    <textarea id="foncier_parcelles" placeholder="Format conseillé : Commune – Section – N° – commentaire"></textarea>
+
+    <label>Commentaire</label>
+    <textarea id="foncier_comment"></textarea>
+
+    <hr>
+
+    <h3 style="margin:0 0 6px;font-size:1rem">Contraintes (nature &amp; règles)</h3>
+
     <label>Espaces / zonages traversés</label>
     <select id="env_zones" multiple>
       <option>Natura 2000</option>
@@ -306,16 +365,16 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
       <option>Autres</option>
     </select>
 
-    <label>Commentaires complémentaires (enjeux & contraintes)</label>
+    <label>Commentaires complémentaires (enjeux &amp; contraintes)</label>
     <textarea id="enjeux_com"></textarea>
-
 
     <label>Contraintes environnementales identifiées</label>
     <textarea id="env_constraints" placeholder="ex : périodes de quiétude, habitats sensibles, adaptations…"></textarea>
 
     <label>Procédures / vigilances pressenties</label>
     <textarea id="env_procedures" placeholder="ex : évaluation d’incidences, avis partenaires, mesures d’évitement…"></textarea>
-</div>
+
+  </div>
 </details>
 
 <!-- I -->
@@ -399,7 +458,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.12.3"},
+  meta:{version:"1.13.0"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -408,6 +467,7 @@ let S = {
   ent:{jh:"", nat:[]},
   sens:[],
   bureau:{interest:"", decision:"GO", arg:"", tour_pot:"Moyen", cost_init_manual:"",
+  foncier:{communes:"", support:"", secur:"", blocages:[], demarches:[], parcelles:"", comment:""},
   it:{route_type:"Boucle", theme:"", length:"", dplus:"", dminus:"", time:"", public:"Grand public", season:"Toute l’année", direction:""},
   env:{zones:[], enjeux:[], enjeux_com:"", constraints:"", procedures:""},
   plan:{short:"", mid:"", phasage:""}}
@@ -1156,6 +1216,15 @@ function saveAll(showToast=true){
     arg: dec_com.value||'',
     tour_pot: tour_pot.value,
     cost_init_manual: cost_init_manual.value||'',
+    foncier: {
+      communes: foncier_communes.value||'',
+      support: foncier_support.value||'',
+      secur: foncier_secur.value||'',
+      blocages: selMulti(foncier_blocages),
+      demarches: selMulti(foncier_demarches),
+      parcelles: foncier_parcelles.value||'',
+      comment: foncier_comment.value||''
+    },
     it: {
       route_type: it_route_type.value||'Boucle',
       theme: it_theme.value||'',
@@ -1216,6 +1285,17 @@ function loadAll(){
   tour_pot.value = S.bureau?.tour_pot||'Moyen';
   cost_init_manual.value = S.bureau?.cost_init_manual||'';
 
+
+  // bureau - foncier
+  foncier_communes.value = S.bureau?.foncier?.communes||'';
+  foncier_support.value = S.bureau?.foncier?.support||'';
+  foncier_secur.value = S.bureau?.foncier?.secur||'';
+  setMulti(foncier_blocages, S.bureau?.foncier?.blocages||[]);
+  setMulti(foncier_demarches, S.bureau?.foncier?.demarches||[]);
+  foncier_parcelles.value = S.bureau?.foncier?.parcelles||'';
+  foncier_comment.value = S.bureau?.foncier?.comment||'';
+
+
   // bureau - caractéristiques itinéraire
   it_route_type.value = S.bureau?.it?.route_type||'Boucle';
   it_theme.value = S.bureau?.it?.theme||'';
@@ -1266,7 +1346,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.12.3"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.13.0"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1319,7 +1399,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.12.3)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.0)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1472,6 +1552,7 @@ function renduHTML(){
   const p=S.project||{};
   const it=S.bureau?.it||{};
   const env=S.bureau?.env||{};
+  const foncier=S.bureau?.foncier||{};
   const plan=S.bureau?.plan||{};
 
   const nSig = (S.sig||[]).length;
@@ -1544,7 +1625,7 @@ function renduHTML(){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.12.3)</title>
+<title>Fiche projet itinéraire – Restitution (1.13.0)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1569,6 +1650,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:20px 0}
 .sec-sub{color:var(--muted);font-size:.92rem}
 
 .kvgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.subttl{font-weight:800;margin:4px 0 8px;color:#111827}
 .kv{display:grid;grid-template-columns:160px 1fr;gap:10px;padding:8px 0;border-top:1px dashed var(--line)}
 .kv:first-child{border-top:none}
 .k{color:var(--muted);font-size:.92rem}
@@ -1662,7 +1744,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.12.3</div>
+            <div class="small">1.13.0</div>
           </div>
         </div>
         <hr class="sep">
@@ -1703,8 +1785,22 @@ audio{width:100%}
     ${noteBlock("Commentaires", it.com||'', "bureau.it.com")}
   </div>
 
-  ${sectionTitle("Contraintes (nature & règles)")}
+  ${sectionTitle("Foncier, nature & règles")}
   <div class="card">
+    <div class="subttl">Foncier &amp; cadastre</div>
+    <div class="kvgrid">
+      ${fieldRow("Communes traversées", foncier.communes||'', "bureau.foncier.communes")}
+      ${fieldRow("Statut du support", foncier.support||'', "bureau.foncier.support")}
+      ${fieldRow("Sécurisation foncière", foncier.secur||'', "bureau.foncier.secur")}
+      ${fieldRow("Blocages (liste)", (foncier.blocages||[]).join(', '), "bureau.foncier.blocages")}
+      ${fieldRow("Démarches (liste)", (foncier.demarches||[]).join(', '), "bureau.foncier.demarches")}
+    </div>
+    <hr class="sep">
+    ${noteBlock("Parcelles (si utile)", foncier.parcelles||'', "bureau.foncier.parcelles")}
+    <div style="margin-top:10px"></div>
+    ${noteBlock("Commentaire", foncier.comment||'', "bureau.foncier.comment")}
+    <hr class="sep">
+    <div class="subttl">Contraintes (nature &amp; règles)</div>
     <div class="kvgrid">
       ${fieldRow("Enjeux (liste)", (env.enjeux||[]).join(', '), "bureau.env.enjeux")}
       ${fieldRow("Zones traversées (liste)", (env.zones||[]).join(', '), "bureau.env.zones")}
@@ -1869,6 +1965,9 @@ const SELECT_FIELDS = {
   "bureau.it.season": ["Toute l’année","Hors neige"],
   "bureau.decision": ["GO","GO sous conditions","NON"],
   "bureau.tour_pot": ["Faible","Moyen","Fort"]
+
+  ,"bureau.foncier.support": ["Voie communale","Chemin rural","Sentier communal","Domaine privé communal","ONF","Autre"]
+  ,"bureau.foncier.secur": ["Sécurisé","À sécuriser","Sensible","Inconnu"]
 };
 
 const MULTI_OPTIONS = {
@@ -1889,6 +1988,26 @@ const MULTI_OPTIONS = {
     "ENS",
     "Forêt domaniale / ONF",
     "Autres"
+  ]
+
+  ,"bureau.foncier.blocages": [
+    "Propriétaire inconnu",
+    "Indivision",
+    "Succession en cours",
+    "Refus / conflit d’usage",
+    "Bornage / limite incertaine",
+    "Clôture / fermeture",
+    "Accès impossible / enclavement",
+    "BND / données incomplètes",
+    "Autres"
+  ]
+  ,"bureau.foncier.demarches": [
+    "Contact propriétaire(s)",
+    "Convention de passage / accord écrit",
+    "Servitude",
+    "Acquisition / échange",
+    "Classement / régularisation domaniale",
+    "Médiation / accompagnement"
   ]
 };
 
