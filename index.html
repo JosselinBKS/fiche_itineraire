@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.12.2)</title>
+<title>PWA – Fiche projet itinéraire (1.12.3)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.12.2 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.12.3 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -399,7 +399,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.12.2"},
+  meta:{version:"1.12.3"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1210,7 +1210,7 @@ function loadAll(){
   setMulti(ent_nat, S.ent?.nat||[]);
   ent_com.value = S.ent?.com||'';
 
-  dec_interest.value = (S.bureau && (S.bureau.interest!==undefined) ? S.bureau.interest : '');
+  dec_interest.value = (S.bureau?.interest ?? '');
   dec_go.value = S.bureau?.decision||'GO';
   dec_com.value = S.bureau?.arg||'';
   tour_pot.value = S.bureau?.tour_pot||'Moyen';
@@ -1266,7 +1266,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.12.2"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.12.3"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1319,7 +1319,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.12.2)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.12.3)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1482,19 +1482,30 @@ function renduHTML(){
   const fmtGPS = (o)=> (o && o.lat!=null && o.lon!=null) ? (Number(o.lat).toFixed(5)+", "+Number(o.lon).toFixed(5)) : '—';
   const esc = escapeXml;
 
-  function photoBlock(prefix, idx, n, photosPath){
+  function photoBlock(prefix, idx, n){
     if(!n || n<1) return '';
-    const ppath = esc(String(photosPath||'')); // escape for attribute
-    let h = `<div class="media-grid">`;
+    // data-photo-path uses DATA structure paths (sig/bal.sections/trav/sens)
+    let base = '';
+    if(prefix==='SIG') base = 'sig['+(idx-1)+'].photos';
+    if(prefix==='BAL') base = 'bal.sections['+(idx-1)+'].photos';
+    if(prefix==='TRAV') base = 'trav['+(idx-1)+'].photos';
+    if(prefix==='SENS') base = 'sens['+(idx-1)+'].photos';
+
+    let h = '<div class="media-grid">';
     for(let i=1;i<=n;i++){
-      const src = `photos/${prefix}_${idx}_${i}.jpg`;
-      h += `<figure class="ph"><button class="ph-del" type="button" data-ppath="${ppath}" aria-label="Supprimer la photo">✖</button><img src="${src}" alt="${prefix}_${idx}_${i}"><figcaption>${prefix} #${idx} — photo ${i}</figcaption></figure>`;
+      const src = 'photos/'+prefix+'_'+idx+'_'+i+'.jpg';
+      const pIndex = i-1;
+      h += '<figure class="ph" data-photo-path="'+esc(base)+'" data-photo-index="'+pIndex+'">'
+        + '<img src="'+src+'" alt="photo">'
+        + '<button type="button" class="ph-del noprint" aria-label="Supprimer la photo" title="Supprimer la photo">×</button>'
+        + '<figcaption>'+prefix+' #'+idx+' — photo '+i+'</figcaption>'
+        + '</figure>';
     }
-    h += `</div>`;
+    h += '</div>';
     return h;
   }
 
-  function audioBlock(prefix, idx, refs){(prefix, idx, refs){
+  function audioBlock(prefix, idx, refs){
     const arr = refs || [];
     if(!arr.length) return '';
     let h = `<div class="audio-list">`;
@@ -1533,7 +1544,7 @@ function renduHTML(){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.12.2)</title>
+<title>Fiche projet itinéraire – Restitution (1.12.3)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1572,11 +1583,8 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:20px 0}
 
 .note{white-space:pre-wrap;margin-top:8px;color:#111827}
 .media-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:10px;margin-top:10px}
-.ph{margin:0;position:relative}
+.ph{margin:0}
 .ph img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff}
-.ph-del{position:absolute;top:8px;right:8px;border:none;border-radius:999px;width:28px;height:28px;cursor:pointer;
-  background:rgba(185,28,28,.92);color:#fff;display:none}
-.edit-on .ph-del{display:block}
 .ph figcaption{margin-top:6px;color:var(--muted);font-size:.82rem}
 .audio-list{display:grid;gap:10px;margin-top:10px}
 .audio-item{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px}
@@ -1654,7 +1662,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.12.2</div>
+            <div class="small">1.12.3</div>
           </div>
         </div>
         <hr class="sep">
@@ -1739,7 +1747,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `sig[${i}].comment`)}
-      ${photoBlock('SIG', i+1, (o.photos||[]).length, `sig[${i}].photos`)}
+      ${photoBlock('SIG', i+1, (o.photos||[]).length)}
       ${audioBlock('SIG', i+1, o.audios||[])}
     </div>
   `).join('') || `<div class="small">Aucun objet signalétique saisi.</div>`}
@@ -1770,7 +1778,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `bal.sections[${i}].comment`)}
-      ${photoBlock('BAL', i+1, (o.photos||[]).length, `bal.sections[${i}].photos`)}
+      ${photoBlock('BAL', i+1, (o.photos||[]).length)}
       ${audioBlock('BAL', i+1, o.audios||[])}
     </div>
   `).join('')}
@@ -1793,7 +1801,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `trav[${i}].comment`)}
-      ${photoBlock('TRAV', i+1, (o.photos||[]).length, `trav[${i}].photos`)}
+      ${photoBlock('TRAV', i+1, (o.photos||[]).length)}
       ${audioBlock('TRAV', i+1, o.audios||[])}
     </div>
   `).join('') || `<div class="small">Aucun travail saisi.</div>`}
@@ -1824,7 +1832,7 @@ audio{width:100%}
       </div>
       <hr class="sep">
       ${noteBlock("Commentaire", o.comment||'', `sens[${i}].comment`)}
-      ${photoBlock('SENS', i+1, (o.photos||[]).length, `sens[${i}].photos`)}
+      ${photoBlock('SENS', i+1, (o.photos||[]).length)}
       ${audioBlock('SENS', i+1, o.audios||[])}
     </div>
   `).join('') || `<div class="small">Aucun point sensible saisi.</div>`}
@@ -1837,11 +1845,18 @@ let DATA = JSON.parse(JSON.stringify(ORIGINAL));
 const DOC_KEY = ${JSON.stringify(docKey)};
 
 const ARRAY_FIELDS = new Set([
-  "bal.types","ent.nat","bureau.env.enjeux","bureau.env.zones"
+  "bal.types",
+  "ent.nat",
+  "bureau.env.enjeux",
+  "bureau.env.zones"
 ]);
 
 const NUMBER_FIELDS = new Set([
-  "bureau.it.length","bureau.it.dplus","bureau.it.dminus","ent.jh","bureau.cost_init_manual","bureau.interest"
+  "bureau.it.length",
+  "bureau.it.dplus",
+  "bureau.it.dminus",
+  "ent.jh",
+  "bureau.interest"
 ]);
 
 const STAR_FIELD = "bureau.interest";
@@ -1859,9 +1874,24 @@ const SELECT_FIELDS = {
 const MULTI_OPTIONS = {
   "bal.types": ["PR","GR","GRP","Local","Absent"],
   "ent.nat": ["Débroussaillage","Élagage","Balisage","Ouvrages","Drainage","Surveillance / chablis"],
-  "bureau.env.enjeux": ["Risque de chutes de blocs","Crues / aléas hydrauliques","Érosion des sentiers","Pastoralisme","Chasse","Autres"],
-  "bureau.env.zones": ["Natura 2000","Site classé / inscrit","Réserve naturelle","ENS","Forêt domaniale / ONF","Autres"]
+  "bureau.env.enjeux": [
+    "Risque de chutes de blocs",
+    "Crues / aléas hydrauliques",
+    "Érosion des sentiers",
+    "Pastoralisme",
+    "Chasse",
+    "Autres"
+  ],
+  "bureau.env.zones": [
+    "Natura 2000",
+    "Site classé / inscrit",
+    "Réserve naturelle",
+    "ENS",
+    "Forêt domaniale / ONF",
+    "Autres"
+  ]
 };
+
 function pathToParts(path){
   return String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean);
 }
@@ -1891,161 +1921,176 @@ function setByPath(root, path, value){
 }
 
 function parseValue(path, raw){
-  const s = String(raw==null ? "" : raw).trim();
+  // Star field: accept only 1..5, else blank
   if(path === STAR_FIELD){
-    if(!s || s === "_ _" || s === "__" || s === "—") return "";
-    const n = Number(String(s).replace(",", "."));
-    return Number.isFinite(n) ? n : "";
+    const n = Number(raw);
+    return (Number.isFinite(n) && n>=1 && n<=5) ? n : '';
   }
   if(ARRAY_FIELDS.has(path)){
+    if(Array.isArray(raw)) return raw;
+    const s = String(raw||'').trim();
     if(!s) return [];
-    return s.split(",").map(x=>x.trim()).filter(Boolean);
+    return s.split(',').map(x=>x.trim()).filter(Boolean);
   }
   if(NUMBER_FIELDS.has(path)){
-    if(!s) return "";
-    const n = Number(String(s).replace(",", "."));
-    return Number.isFinite(n) ? n : s;
+    const s = String(raw||'').trim();
+    if(!s) return '';
+    const n = Number(s);
+    return Number.isFinite(n) ? n : '';
   }
-  return s;
+  return (raw==null ? '' : String(raw));
 }
 
-function formatValue(path, v){
-  if(path === STAR_FIELD){
-    if(v==null || v==="" ) return "_ _";
-    const n = Number(v);
-    return (Number.isFinite(n) && n>=1 && n<=5) ? "⭐".repeat(n) : String(v);
-  }
-  if(Array.isArray(v)) return v.join(", ");
-  if(v==null) return "";
-  return String(v);
-}
+function applyToDom(data){
+  document.querySelectorAll('[data-path]').forEach(el=>{
+    const path = el.getAttribute('data-path');
+    let v = getByPath(data, path);
 
-function applyToDom(obj){
-  document.querySelectorAll("[data-path]").forEach(el=>{
-    const path = el.getAttribute("data-path");
-    const v = getByPath(obj, path);
-
-    if(el.tagName === "SELECT"){
+    if(el.tagName === 'SELECT'){
       if(el.multiple){
-        const arr = Array.isArray(v) ? v : [];
-        Array.from(el.options).forEach(o=>o.selected = arr.includes(o.value));
+        const set = new Set(Array.isArray(v)?v:[]);
+        Array.from(el.options).forEach(o=>o.selected=set.has(o.value));
       }else{
-        el.value = (v==null ? "" : String(v));
+        el.value = (v==null ? '' : String(v));
       }
       return;
     }
-    el.textContent = formatValue(path, v);
+
+    if(path === STAR_FIELD){
+      const n = Number(v);
+      if(Number.isFinite(n) && n>=1 && n<=5){
+        el.textContent = '⭐'.repeat(n);
+      }else{
+        el.textContent = '_ _';
+      }
+      return;
+    }
+
+    if(Array.isArray(v)) v = v.join(', ');
+    el.textContent = (v==null ? '' : String(v));
   });
 }
 
 function gatherFromDom(){
-  document.querySelectorAll("[data-path]").forEach(el=>{
-    const path = el.getAttribute("data-path");
-    let v;
+  const next = structuredClone(DATA);
 
-    if(el.tagName === "SELECT"){
+  document.querySelectorAll('[data-path]').forEach(el=>{
+    const path = el.getAttribute('data-path');
+    if(!path) return;
+
+    let raw;
+    if(el.tagName === 'SELECT'){
       if(el.multiple){
-        v = Array.from(el.options).filter(o=>o.selected).map(o=>o.value);
+        raw = Array.from(el.selectedOptions).map(o=>o.value);
       }else{
-        v = el.value;
+        raw = el.value;
       }
     }else{
-      v = parseValue(path, el.textContent);
+      raw = (el.textContent||'').trim();
     }
 
-    // Normalize star field
-    if(path === STAR_FIELD){
-      if(v==null || v==="" ) v = "";
-      else{
-        const n = Number(String(v).replace(",", "."));
-        v = Number.isFinite(n) ? n : "";
-      }
-    }
-
-    setByPath(DATA, path, v);
+    const val = parseValue(path, raw);
+    setByPath(next, path, val);
   });
-}
 
-function buildSelect(path, v, opts, multiple){
-  const sel = document.createElement("select");
-  sel.className = "editable";
-  sel.setAttribute("data-path", path);
-  sel.setAttribute("data-swap", "1");
-  if(multiple) sel.multiple = true;
-
-  if(path === STAR_FIELD){
-    sel.appendChild(new Option("_ _", ""));
-    for(let i=1;i<=5;i++){
-      sel.appendChild(new Option("⭐".repeat(i), String(i)));
-    }
-    sel.value = (v==null ? "" : String(v));
-    return sel;
-  }
-
-  (opts||[]).forEach(o=>sel.appendChild(new Option(o,o)));
-
-  if(multiple){
-    const arr = Array.isArray(v) ? v : [];
-    Array.from(sel.options).forEach(o=>o.selected = arr.includes(o.value));
-  }else{
-    const sv = (v==null ? "" : String(v));
-    if(sv && !opts.includes(sv)){
-      sel.insertBefore(new Option(sv, sv), sel.firstChild);
-    }
-    sel.value = sv || (sel.options[0] ? sel.options[0].value : "");
-  }
-  return sel;
+  DATA = next;
+  persist();
 }
 
 function setEditMode(on){
-  document.body.classList.toggle("edit-on", on);
-  document.querySelectorAll(".editable").forEach(el=>{
-    if(el.tagName !== "SELECT"){
-      el.setAttribute("contenteditable", on ? "true" : "false");
-    }
-  });
+  editOn = !!on;
+  document.body.classList.toggle('edit-on', editOn);
 
-  if(on){
-    // swap spans to selects where appropriate
-    document.querySelectorAll("span.editable[data-path]").forEach(sp=>{
-      const path = sp.getAttribute("data-path");
-      const v = getByPath(DATA, path);
+  if(editOn){
+    // Swap configured paths to selects
+    document.querySelectorAll('[data-path]').forEach(el=>{
+      const path = el.getAttribute('data-path');
+      if(!path) return;
 
-      if(path === STAR_FIELD){
-        const sel = buildSelect(path, v, null, false);
-        sp.replaceWith(sel);
-        return;
-      }
-      if(SELECT_FIELDS[path]){
-        const sel = buildSelect(path, v, SELECT_FIELDS[path], false);
-        sp.replaceWith(sel);
-        return;
-      }
-      if(MULTI_OPTIONS[path]){
-        const sel = buildSelect(path, v, MULTI_OPTIONS[path], true);
-        sp.replaceWith(sel);
-        return;
+      const isStar = (path === STAR_FIELD);
+      const isSelect = Object.prototype.hasOwnProperty.call(SELECT_FIELDS, path);
+      const isMulti = Object.prototype.hasOwnProperty.call(MULTI_OPTIONS, path);
+
+      if((isStar || isSelect || isMulti) && el.tagName !== 'SELECT'){
+        const sel = document.createElement('select');
+        sel.className = 'editable';
+        sel.setAttribute('data-path', path);
+        sel.setAttribute('data-swap', '1');
+
+        if(isMulti){
+          sel.multiple = true;
+          MULTI_OPTIONS[path].forEach(opt=>{
+            const o=document.createElement('option');
+            o.value=opt; o.textContent=opt;
+            sel.appendChild(o);
+          });
+          sel.size = Math.min(6, Math.max(3, MULTI_OPTIONS[path].length));
+        }else if(isStar){
+          // blank option
+          const o0=document.createElement('option');
+          o0.value=''; o0.textContent='_ _';
+          sel.appendChild(o0);
+          for(let i=1;i<=5;i++){
+            const o=document.createElement('option');
+            o.value=String(i);
+            o.textContent='⭐'.repeat(i);
+            sel.appendChild(o);
+          }
+        }else{
+          SELECT_FIELDS[path].forEach(opt=>{
+            const o=document.createElement('option');
+            o.value=opt; o.textContent=opt;
+            sel.appendChild(o);
+          });
+        }
+
+        // set current value(s)
+        const v = getByPath(DATA, path);
+        if(sel.multiple){
+          const set = new Set(Array.isArray(v)?v:[]);
+          Array.from(sel.options).forEach(o=>o.selected=set.has(o.value));
+        }else{
+          sel.value = (v==null ? '' : String(v));
+        }
+
+        el.replaceWith(sel);
       }
     });
   }else{
-    // gather values then swap selects back to spans
-    gatherFromDom();
+    // Revert selects back to spans
     document.querySelectorAll("select.editable[data-swap='1']").forEach(sel=>{
-      const path = sel.getAttribute("data-path");
+      const path = sel.getAttribute('data-path');
+      const span = document.createElement('span');
+      span.className = 'editable';
+      span.setAttribute('data-path', path);
+
       const v = getByPath(DATA, path);
-      const sp = document.createElement("span");
-      sp.className = "editable";
-      sp.setAttribute("data-path", path);
-      sp.setAttribute("contenteditable", "false");
-      sp.textContent = formatValue(path, v);
-      sel.replaceWith(sp);
+      if(path === STAR_FIELD){
+        const n = Number(v);
+        span.textContent = (Number.isFinite(n) && n>=1 && n<=5) ? '⭐'.repeat(n) : '_ _';
+      }else if(Array.isArray(v)){
+        span.textContent = v.join(', ');
+      }else{
+        span.textContent = (v==null ? '' : String(v));
+      }
+
+      sel.replaceWith(span);
     });
   }
 
-  document.getElementById("btnEdit").textContent = on ? "✅ Terminer" : "✏️ Modifier";
-  document.getElementById("status").textContent = on
-    ? ("Mode modification activé • clé : " + DOC_KEY)
-    : ("Restitution éditable (corrections bureau) • clé : " + DOC_KEY);
+  // Enable/disable editing
+  document.querySelectorAll('.editable').forEach(el=>{
+    if(el.tagName === 'SELECT'){
+      el.disabled = !editOn;
+    }else{
+      el.contentEditable = editOn ? 'true' : 'false';
+      el.classList.toggle('ce', editOn);
+    }
+  });
+
+  if(!editOn){
+    applyToDom(DATA);
+  }
 }
 
 function toast(msg){
@@ -2066,33 +2111,6 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
   toast("Enregistré (local)");
 });
 
-// Suppression d’une photo dans la restitution (mode modification)
-document.addEventListener("click", (e)=>{
-  const btn = e.target && e.target.closest ? e.target.closest(".ph-del") : null;
-  if(!btn) return;
-  if(!document.body.classList.contains("edit-on")) return;
-  const fig = btn.closest("figure.ph");
-  if(!fig) return;
-  const grid = fig.parentElement;
-  const ppath = btn.getAttribute("data-ppath") || (grid ? grid.getAttribute("data-ppath") : "");
-  if(!ppath) { fig.remove(); return; }
-
-  // index actuel dans la grille (robuste même après suppressions)
-  const figs = grid ? Array.from(grid.querySelectorAll("figure.ph")) : [fig];
-  const idx = figs.indexOf(fig);
-
-  const arr = getByPath(DATA, ppath);
-  if(Array.isArray(arr) && idx>=0){
-    arr.splice(idx, 1);
-  }
-  fig.remove();
-
-  // persist local
-  localStorage.setItem(DOC_KEY, JSON.stringify(DATA));
-  document.getElementById("status").textContent = "Photo supprimée • clé : " + DOC_KEY;
-});
-
-
 document.getElementById('btnJson').addEventListener('click', ()=>{
   gatherFromDom();
   const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
@@ -2101,6 +2119,45 @@ document.getElementById('btnJson').addEventListener('click', ()=>{
   a.download = 'fiche_corrigee_' + DOC_KEY + '.json';
   a.click();
   toast("JSON téléchargé");
+});
+
+
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.ph-del');
+  if(!btn) return;
+  if(!document.body.classList.contains('edit-on')) return;
+
+  const fig = btn.closest('figure.ph');
+  if(!fig) return;
+
+  const base = fig.getAttribute('data-photo-path') || '';
+  let pIndex = Number(fig.getAttribute('data-photo-index'));
+  if(!base || !Number.isFinite(pIndex) || pIndex<0) { fig.remove(); return; }
+
+  const arr = getByPath(DATA, base);
+  if(Array.isArray(arr) && pIndex < arr.length){
+    arr.splice(pIndex, 1);
+    persist();
+  }
+
+  // remove from DOM + reindex remaining siblings so further deletions target correct indices
+  const grid = fig.closest('.media-grid');
+  fig.remove();
+
+  if(grid){
+    const figs = Array.from(grid.querySelectorAll('figure.ph'));
+    figs.forEach((f, i)=>{
+      f.setAttribute('data-photo-index', String(i));
+      const cap = f.querySelector('figcaption');
+      if(cap){
+        const txt = cap.textContent || '';
+        // replace "photo X" at end if present
+        cap.textContent = txt.replace(/photo\s+\d+\s*$/i, 'photo ' + (i+1));
+      }
+    });
+  }
+
+  toast('Photo supprimée');
 });
 
 document.getElementById('btnPrint').addEventListener('click', ()=>{
