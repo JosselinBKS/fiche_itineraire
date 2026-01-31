@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.1)</title>
+<title>PWA – Fiche projet itinéraire (1.13.2)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -42,7 +42,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 .photo{position:relative}
 .photo img{width:100%;border-radius:6px}
 .photo button{position:absolute;top:4px;right:4px;background:var(--danger);color:#fff;border:none;border-radius:999px;width:26px;height:26px}
-.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px}
+.footer{position:fixed;bottom:0;left:0;right:0;background:var(--item2);border-top:1px solid var(--line);padding:8px}
 .footer .row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
 .footer button .small{display:block;font-size:.78rem;line-height:1.05}
 @media (max-width:720px){
@@ -50,7 +50,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   .footer .row{grid-template-columns:1fr 1fr}
 }
 
-/* --- V1.13.1 : footer actions compact on mobile + contraste Export ZIP --- */
+/* --- V1.13.2 : footer actions compact on mobile + contraste Export ZIP --- */
 .footer button.primary .small{color:rgba(255,255,255,.88)}
 .footer-mini{display:none}
 .footer .actions-toggle{width:auto;padding:8px 12px;border-radius:999px}
@@ -100,7 +100,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.1 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.2 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -474,7 +474,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.1"},
+  meta:{version:"1.13.2"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1422,7 +1422,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.1)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.2)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
