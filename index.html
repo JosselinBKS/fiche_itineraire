@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.0)</title>
+<title>PWA – Fiche projet itinéraire (1.14.0)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -86,7 +86,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.0 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.14.0 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -458,7 +458,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.0"},
+  meta:{version:"1.14.0"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -841,11 +841,14 @@ function renderAllLists(){
 
   // SIGNALÉTIQUE
   sig_list.innerHTML="";
+  let __sigN=0;
   S.sig.forEach((o,i)=>{
+    if(o && o._deleted) return;
+    __sigN++;
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
       <details class="obj" id="sig_${i}">
-        <summary>Signalétique n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
+        <summary>Signalétique n°${__sigN}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <div class="row2">
             <div>
@@ -909,11 +912,14 @@ function renderAllLists(){
 
   // BALISAGE sections
   bal_list.innerHTML="";
+  let __balN=0;
   S.bal.sections.forEach((o,i)=>{
+    if(o && o._deleted) return;
+    __balN++;
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
       <details class="obj" id="bal_${i}">
-        <summary>Section n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
+        <summary>Section n°${__balN}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <div class="row3">
             <div>
@@ -968,11 +974,14 @@ function renderAllLists(){
 
   // TRAVAUX
   trav_list.innerHTML="";
+  let __travN=0;
   S.trav.forEach((o,i)=>{
+    if(o && o._deleted) return;
+    __travN++;
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
       <details class="obj" id="trav_${i}">
-        <summary>Travail n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
+        <summary>Travail n°${__travN}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <label>Type de travaux</label>
           <select onchange="S.trav[${i}].type=this.value">
@@ -1033,11 +1042,14 @@ function renderAllLists(){
 
   // POINTS SENSIBLES
   sens_list.innerHTML="";
+  let __sensN=0;
   S.sens.forEach((o,i)=>{
+    if(o && o._deleted) return;
+    __sensN++;
     const wrap=document.createElement('div'); wrap.className="item";
     wrap.innerHTML = `
       <details class="obj" id="sens_${i}">
-        <summary>Point sensible n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
+        <summary>Point sensible n°${__sensN}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <div class="row2">
             <div>
@@ -1146,7 +1158,19 @@ function addBalSec(){
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
 }
-function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
+function softDelete(kind, i){
+  let arr=null;
+  if(kind==='bal') arr = (S.bal && S.bal.sections) ? S.bal.sections : null;
+  else arr = S[kind];
+  if(!arr || !arr[i]) return;
+  arr[i]._deleted = true;
+  arr[i]._deletedAt = new Date().toISOString();
+  saveAll(false);
+  renderAllLists();
+  S.projectAudios = S.projectAudios || [];
+  renderAudioList('projAudios', S.projectAudios);
+}
+function delBalSec(i){ softDelete('bal', i); }
 function addTrav(){
   S.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],audios:[],comment:'',other:''});
   const idx = S.trav.length-1;
@@ -1167,10 +1191,7 @@ function addSens(){
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
 }
-function delItem(kind, i){
-  S[kind].splice(i,1);
-  saveAll(false); renderAllLists();
-}
+function delItem(kind, i){ softDelete(kind, i); }
 
 // Photos
 function onPhotos(e, kind, idx){
@@ -1346,7 +1367,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   // - Waypoints only (wpt)
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.13.0"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.14.0"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1368,6 +1389,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   let count = 0;
 
   points.forEach((o,i)=>{
+    if(o && o._deleted) return;
     const lat = coordFinite(o && o.lat);
     const lon = coordFinite(o && o.lon);
     if(Number.isFinite(lat) && Number.isFinite(lon)){
@@ -1399,7 +1421,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.0)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.14.0)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1555,10 +1577,10 @@ function renduHTML(){
   const foncier=S.bureau?.foncier||{};
   const plan=S.bureau?.plan||{};
 
-  const nSig = (S.sig||[]).length;
-  const nBal = (S.bal?.sections||[]).length;
-  const nTrav = (S.trav||[]).length;
-  const nSens = (S.sens||[]).length;
+  const nSig = (S.sig||[]).filter(o=>o && !o._deleted).length;
+  const nBal = (S.bal?.sections||[]).filter(o=>o && !o._deleted).length;
+  const nTrav = (S.trav||[]).filter(o=>o && !o._deleted).length;
+  const nSens = (S.sens||[]).filter(o=>o && !o._deleted).length;
 
   const fmtGPS = (o)=> (o && o.lat!=null && o.lon!=null) ? (Number(o.lat).toFixed(5)+", "+Number(o.lon).toFixed(5)) : '—';
   const esc = escapeXml;
@@ -1625,7 +1647,7 @@ function renduHTML(){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.0)</title>
+<title>Fiche projet itinéraire – Restitution (1.14.0)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1674,6 +1696,18 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:20px 0}
 audio{width:100%}
 
 /* Editing */
+/* Bureau objects (V1.14.0) */
+button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-weight:700;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.addbar{display:flex;justify-content:flex-end;gap:10px;margin:8px 0}
+.obj-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn-mini{padding:6px 8px;font-size:.86rem}
+.ph{position:relative}
+.ph-del{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:999px;padding:0;line-height:28px;text-align:center}
+.audio-item{position:relative}
+.au-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:999px;padding:0;line-height:28px;text-align:center}
+
 .toolbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}
 .toolbar .page{padding:10px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .toolbar button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-weight:700;cursor:pointer}
@@ -1723,10 +1757,10 @@ audio{width:100%}
     </div>
 
     <div class="badges">
-      <span class="badge">Signalétique <strong>${nSig}</strong></span>
-      <span class="badge">Balisage (sections) <strong>${nBal}</strong></span>
-      <span class="badge">Travaux <strong>${nTrav}</strong></span>
-      <span class="badge">Points sensibles <strong>${nSens}</strong></span>
+      <span class="badge">Signalétique <strong id="countSig">${nSig}</strong></span>
+      <span class="badge">Balisage (sections) <strong id="countBal">${nBal}</strong></span>
+      <span class="badge">Travaux <strong id="countTrav">${nTrav}</strong></span>
+      <span class="badge">Points sensibles <strong id="countSens">${nSens}</strong></span>
       <span class="badge">Entretien <strong><span class="editable" data-path="ent.jh">${esc(S.ent?.jh||'')}</span></strong> JH/an</span>
     </div>
 
@@ -1744,7 +1778,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.0</div>
+            <div class="small">1.14.0</div>
           </div>
         </div>
         <hr class="sep">
@@ -1826,119 +1860,397 @@ audio{width:100%}
 
   <hr class="sep">
 
-  ${sectionTitle("Signalétique", `${nSig} objet(s)`)}
-  ${(S.sig||[]).map((o,i)=>`
-    <div class="obj">
-      <div class="obj-head">
-        <div>
-          <div class="obj-title">Signalétique #${i+1}</div>
-          <div class="obj-sub">GPS : ${fmtGPS(o)}</div>
-        </div>
-        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
-      </div>
-      <div class="kvgrid">
-        ${fieldRow("Type", o.type||'', `sig[${i}].type`)}
-        ${fieldRow("Style", o.style||'', `sig[${i}].style`)}
-        ${fieldRow("Action", o.action||'', `sig[${i}].action`)}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Commentaire", o.comment||'', `sig[${i}].comment`)}
-      ${photoBlock('SIG', i+1, (o.photos||[]).length)}
-      ${audioBlock('SIG', i+1, o.audios||[])}
-    </div>
-  `).join('') || `<div class="small">Aucun objet signalétique saisi.</div>`}
-
-  ${sectionTitle("Balisage", `${nBal} section(s)`)}
-  <div class="card">
-    <div class="kvgrid">
-      ${fieldRow("Types rencontrés (liste)", (S.bal?.types||[]).join(', '), "bal.types")}
-      ${fieldRow("Action globale", S.bal?.action_global||'', "bal.action_global")}
-    </div>
-    <hr class="sep">
-    ${noteBlock("Commentaire global", S.bal?.com_global||'', "bal.com_global")}
-  </div>
-
-  ${(S.bal?.sections||[]).map((o,i)=>`
-    <div class="obj">
-      <div class="obj-head">
-        <div>
-          <div class="obj-title">Section balisage #${i+1}</div>
-          <div class="obj-sub">GPS début : ${fmtGPS(o)}</div>
-        </div>
-        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
-      </div>
-      <div class="kvgrid">
-        ${fieldRow("Action", o.action||'', `bal.sections[${i}].action`)}
-        ${fieldRow("Linéaire (m)", o.linear||'', `bal.sections[${i}].linear`)}
-        ${fieldRow("Temps (JH)", o.jh||'', `bal.sections[${i}].jh`)}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Commentaire", o.comment||'', `bal.sections[${i}].comment`)}
-      ${photoBlock('BAL', i+1, (o.photos||[]).length)}
-      ${audioBlock('BAL', i+1, o.audios||[])}
-    </div>
-  `).join('')}
-
-  ${sectionTitle("Travaux de réouverture", `${nTrav} objet(s)`)}
-  ${(S.trav||[]).map((o,i)=>`
-    <div class="obj">
-      <div class="obj-head">
-        <div>
-          <div class="obj-title">Travail #${i+1}</div>
-          <div class="obj-sub">GPS début : ${fmtGPS(o)}</div>
-        </div>
-        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
-      </div>
-      <div class="kvgrid">
-        ${fieldRow("Type", o.type||'', `trav[${i}].type`)}
-        ${fieldRow("Linéaire (m)", o.linear||'', `trav[${i}].linear`)}
-        ${fieldRow("Temps (JH)", o.jh||'', `trav[${i}].jh`)}
-        ${fieldRow("Précision", o.other||'', `trav[${i}].other`)}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Commentaire", o.comment||'', `trav[${i}].comment`)}
-      ${photoBlock('TRAV', i+1, (o.photos||[]).length)}
-      ${audioBlock('TRAV', i+1, o.audios||[])}
-    </div>
-  `).join('') || `<div class="small">Aucun travail saisi.</div>`}
-
-  ${sectionTitle("Entretien annuel estimé")}
-  <div class="card">
-    <div class="kvgrid">
-      ${fieldRow("Volume (JH/an)", S.ent?.jh||'', "ent.jh")}
-      ${fieldRow("Natures (liste)", (S.ent?.nat||[]).join(', '), "ent.nat")}
-    </div>
-    <hr class="sep">
-    ${noteBlock("Commentaire", S.ent?.com||'', "ent.com")}
-  </div>
-
-  ${sectionTitle("Points sensibles & pb de tronçons", `${nSens} objet(s)`)}
-  ${(S.sens||[]).map((o,i)=>`
-    <div class="obj">
-      <div class="obj-head">
-        <div>
-          <div class="obj-title">Point sensible #${i+1}</div>
-          <div class="obj-sub">GPS : ${fmtGPS(o)}</div>
-        </div>
-        <div class="obj-tags">${o.photos?.length?`<span class="tag">📷 ${o.photos.length}</span>`:''}${o.audios?.length?`<span class="tag">🎧 ${o.audios.length}</span>`:''}</div>
-      </div>
-      <div class="kvgrid">
-        ${fieldRow("Catégorie", o.cat||'', `sens[${i}].cat`)}
-        ${fieldRow("Précision", o.other||'', `sens[${i}].other`)}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Commentaire", o.comment||'', `sens[${i}].comment`)}
-      ${photoBlock('SENS', i+1, (o.photos||[]).length)}
-      ${audioBlock('SENS', i+1, o.audios||[])}
-    </div>
-  `).join('') || `<div class="small">Aucun point sensible saisi.</div>`}
-
+  ${sectionTitle("Signalétique")}
+<div class="noprint addbar">
+  <button type="button" class="primary" id="btnAddSig">➕ Ajouter une signalétique</button>
 </div>
+<div id="sigList"></div>
+
+${sectionTitle("Balisage")}
+<div class="card">
+  <div class="kvgrid">
+    ${fieldRow("Types rencontrés (liste)", (S.bal?.types||[]).join(', '), "bal.types")}
+    ${fieldRow("Action globale", S.bal?.action_global||'', "bal.action_global")}
+  </div>
+  <hr class="sep">
+  ${noteBlock("Commentaire global", S.bal?.com_global||'', "bal.com_global")}
+</div>
+<div class="noprint addbar">
+  <button type="button" class="primary" id="btnAddBalSec">➕ Ajouter une section balisage</button>
+</div>
+<div id="balSecList"></div>
+
+${sectionTitle("Travaux de réouverture")}
+<div class="noprint addbar">
+  <button type="button" class="primary" id="btnAddTrav">➕ Ajouter un travail</button>
+</div>
+<div id="travList"></div>
+
+${sectionTitle("Entretien annuel estimé")}
+<div class="card">
+  <div class="kvgrid">
+    ${fieldRow("Volume (JH/an)", S.ent?.jh||'', "ent.jh")}
+    ${fieldRow("Natures (liste)", (S.ent?.nat||[]).join(', '), "ent.nat")}
+  </div>
+  <hr class="sep">
+  ${noteBlock("Commentaire", S.ent?.com||'', "ent.com")}
+</div>
+
+${sectionTitle("Points sensibles & pb de tronçons")}
+<div class="noprint addbar">
+  <button type="button" class="primary" id="btnAddSens">➕ Ajouter un point sensible</button>
+</div>
+<div id="sensList"></div>
+
+<input id="audioPicker" type="file" accept="audio/*" multiple style="display:none">
+
+
 
 <script>
 const ORIGINAL = ${originalJson};
 let DATA = JSON.parse(JSON.stringify(ORIGINAL));
 const DOC_KEY = ${JSON.stringify(docKey)};
+
+function persist(){
+  try{
+    localStorage.setItem(DOC_KEY, JSON.stringify(DATA));
+  }catch(e){
+    console.warn(e);
+    toast("⚠️ Stockage saturé : supprime des médias ou allège les fichiers");
+  }
+}
+
+function extFromMime(m){
+  const t = String(m||'').toLowerCase();
+  if(t.includes('mp3') || t.includes('mpeg')) return 'mp3';
+  if(t.includes('wav')) return 'wav';
+  if(t.includes('ogg')) return 'ogg';
+  if(t.includes('m4a') || t.includes('mp4')) return 'm4a';
+  if(t.includes('aac')) return 'aac';
+  if(t.includes('webm')) return 'webm';
+  return 'webm';
+}
+
+function escHtml(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtGPS2(o){
+  if(!o) return '—';
+  if(o.lat==null || o.lon==null) return '—';
+  const lat = Number(o.lat), lon = Number(o.lon);
+  if(!Number.isFinite(lat) || !Number.isFinite(lon)) return '—';
+  return lat.toFixed(5)+', '+lon.toFixed(5);
+}
+
+function countVisible(arr){
+  return (arr||[]).filter(o=>o && !o._deleted).length;
+}
+
+function updateCounts(){
+  function set(id, v){
+    const el=document.getElementById(id);
+    if(el) el.textContent=String(v);
+  }
+  set('countSig', countVisible(DATA.sig));
+  set('countBal', countVisible(DATA.bal && DATA.bal.sections));
+  set('countTrav', countVisible(DATA.trav));
+  set('countSens', countVisible(DATA.sens));
+}
+
+function mediaGrid(pathBase, photos){
+  const arr = Array.isArray(photos)?photos:[];
+  if(!arr.length) return '';
+  let h = '<div class="media-grid">';
+  for(let i=0;i<arr.length;i++){
+    const src = arr[i];
+    h += '<figure class="ph" data-photo-path="'+escHtml(pathBase)+'" data-photo-index="'+i+'">'+
+         '<img src="'+escHtml(src)+'" alt="photo">'+
+         '<button type="button" class="ph-del noprint" aria-label="Supprimer la photo" title="Supprimer la photo">×</button>'+
+         '<figcaption>photo '+(i+1)+'</figcaption>'+
+         '</figure>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function audioList(kindPrefix, objIndex1, audios, pathBase){
+  const arr = Array.isArray(audios)?audios:[];
+  if(!arr.length) return '';
+  let h = '<div class="audio-list">';
+  for(let i=0;i<arr.length;i++){
+    const ref = arr[i]||{};
+    const isLocal = !!ref.dataUrl;
+    const label = ref.name ? escHtml(ref.name) : ('Audio '+(i+1));
+    let src = '';
+    if(isLocal){
+      src = ref.dataUrl;
+    }else{
+      const ext = ref.ext || extFromMime(ref.type || 'audio/webm');
+      if(kindPrefix==='PROJET'){
+        src = 'audios/PROJET_'+(i+1)+'.'+ext;
+      }else{
+        src = 'audios/'+kindPrefix+'_'+objIndex1+'_'+(i+1)+'.'+ext;
+      }
+    }
+    h += '<div class="audio-item">'+
+         (isLocal ? '<button type="button" class="au-del noprint" title="Supprimer l\u2019audio" aria-label="Supprimer l\u2019audio" data-audio-path="'+escHtml(pathBase)+'" data-audio-index="'+i+'">×</button>' : '')+
+         '<div class="audio-label">🎧 '+label+'</div>'+
+         '<audio controls preload="none" src="'+escHtml(src)+'"></audio>'+
+         '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function objCard(kind, i, title, sub, fieldsHtml, notePath, photosPath, audiosPath, prefix){
+  const o = getByPath(DATA, kind + '['+i+']');
+  const photos = (o && o.photos) || [];
+  const audios = (o && o.audios) || [];
+  const objIndex1 = i+1;
+
+  let h = '';
+  h += '<div class="obj" id="'+kind.replace('.','_')+'_'+i+'">';
+  h +=   '<div class="obj-head">';
+  h +=     '<div>';
+  h +=       '<div class="obj-title">'+escHtml(title)+' #'+objIndex1+'</div>';
+  h +=       '<div class="obj-sub">'+escHtml(sub)+'</div>';
+  h +=     '</div>';
+  h +=     '<div class="obj-tags">';
+  h +=       (photos.length ? '<span class="tag">📷 '+photos.length+'</span>' : '');
+  h +=       (audios.length ? '<span class="tag">🎧 '+audios.length+'</span>' : '');
+  h +=     '</div>';
+  h +=   '</div>';
+
+  h +=   '<div class="kvgrid">'+fieldsHtml+'</div>';
+  h +=   '<hr class="sep">';
+  h +=   '<div class="small"><strong>Commentaire</strong><div class="note editable" data-path="'+escHtml(notePath)+'"></div></div>';
+
+  h +=   mediaGrid(photosPath, photos);
+  h +=   audioList(prefix, objIndex1, audios, audiosPath);
+
+  h +=   '<div class="obj-actions noprint">';
+  h +=     '<button type="button" class="btn-mini" data-add-audio="'+escHtml(audiosPath)+'">➕ Audio (fichier)</button>';
+  h +=     '<button type="button" class="btn-mini danger obj-del" data-kind="'+escHtml(kind)+'" data-index="'+i+'">🗑️ Supprimer l\u2019objet</button>';
+  h +=   '</div>';
+
+  h += '</div>';
+  return h;
+}
+
+function renderObjects(){
+  // SIGNALÉTIQUE
+  const sigEl = document.getElementById('sigList');
+  if(sigEl){
+    const items = (DATA.sig||[]).map((o,i)=>({o:o,i:i})).filter(x=>x.o && !x.o._deleted);
+    if(!items.length){
+      sigEl.innerHTML = '<div class="small">Aucun objet signalétique.</div>';
+    }else{
+      sigEl.innerHTML = items.map(function(x){
+        const i = x.i;
+        const fields =
+          '<div class="kv"><div class="k">Type</div><div class="v editable" data-path="sig['+i+'].type"></div></div>'+
+          '<div class="kv"><div class="k">Style</div><div class="v editable" data-path="sig['+i+'].style"></div></div>'+
+          '<div class="kv"><div class="k">Action</div><div class="v editable" data-path="sig['+i+'].action"></div></div>';
+        return objCard('sig', i, 'Signalétique', 'GPS : '+fmtGPS2(DATA.sig[i]), fields, 'sig['+i+'].comment', 'sig['+i+'].photos', 'sig['+i+'].audios', 'SIG');
+      }).join('');
+    }
+  }
+
+  // BALISAGE sections
+  const balEl = document.getElementById('balSecList');
+  if(balEl){
+    const secs = (DATA.bal && DATA.bal.sections) ? DATA.bal.sections : [];
+    const items = (secs||[]).map((o,i)=>({o:o,i:i})).filter(x=>x.o && !x.o._deleted);
+    if(!items.length){
+      balEl.innerHTML = '<div class="small">Aucune section balisage.</div>';
+    }else{
+      balEl.innerHTML = items.map(function(x){
+        const i = x.i;
+        const fields =
+          '<div class="kv"><div class="k">Action</div><div class="v editable" data-path="bal.sections['+i+'].action"></div></div>'+
+          '<div class="kv"><div class="k">Linéaire (m)</div><div class="v editable" data-path="bal.sections['+i+'].linear"></div></div>'+
+          '<div class="kv"><div class="k">Temps (JH)</div><div class="v editable" data-path="bal.sections['+i+'].jh"></div></div>';
+        return objCard('bal.sections', i, 'Section balisage', 'GPS début : '+fmtGPS2(secs[i]), fields, 'bal.sections['+i+'].comment', 'bal.sections['+i+'].photos', 'bal.sections['+i+'].audios', 'BAL');
+      }).join('');
+    }
+  }
+
+  // TRAVAUX
+  const travEl = document.getElementById('travList');
+  if(travEl){
+    const items = (DATA.trav||[]).map((o,i)=>({o:o,i:i})).filter(x=>x.o && !x.o._deleted);
+    if(!items.length){
+      travEl.innerHTML = '<div class="small">Aucun travail.</div>';
+    }else{
+      travEl.innerHTML = items.map(function(x){
+        const i = x.i;
+        const fields =
+          '<div class="kv"><div class="k">Type</div><div class="v editable" data-path="trav['+i+'].type"></div></div>'+
+          '<div class="kv"><div class="k">Linéaire (m)</div><div class="v editable" data-path="trav['+i+'].linear"></div></div>'+
+          '<div class="kv"><div class="k">Temps (JH)</div><div class="v editable" data-path="trav['+i+'].jh"></div></div>'+
+          '<div class="kv"><div class="k">Précision</div><div class="v editable" data-path="trav['+i+'].other"></div></div>';
+        return objCard('trav', i, 'Travail', 'GPS début : '+fmtGPS2(DATA.trav[i]), fields, 'trav['+i+'].comment', 'trav['+i+'].photos', 'trav['+i+'].audios', 'TRAV');
+      }).join('');
+    }
+  }
+
+  // SENSIBLES
+  const sensEl = document.getElementById('sensList');
+  if(sensEl){
+    const items = (DATA.sens||[]).map((o,i)=>({o:o,i:i})).filter(x=>x.o && !x.o._deleted);
+    if(!items.length){
+      sensEl.innerHTML = '<div class="small">Aucun point sensible.</div>';
+    }else{
+      sensEl.innerHTML = items.map(function(x){
+        const i = x.i;
+        const fields =
+          '<div class="kv"><div class="k">Catégorie</div><div class="v editable" data-path="sens['+i+'].cat"></div></div>'+
+          '<div class="kv"><div class="k">Précision</div><div class="v editable" data-path="sens['+i+'].other"></div></div>';
+        return objCard('sens', i, 'Point sensible', 'GPS : '+fmtGPS2(DATA.sens[i]), fields, 'sens['+i+'].comment', 'sens['+i+'].photos', 'sens['+i+'].audios', 'SENS');
+      }).join('');
+    }
+  }
+
+  updateCounts();
+}
+
+function rerenderKeepMode(){
+  const mode = document.body.classList.contains('edit-on');
+  renderObjects();
+  applyToDom(DATA);
+  setEditMode(mode);
+}
+
+// ---- Audio import (shared picker) ----
+let __pendingAudioPath = null;
+
+function pickAudios(path){
+  __pendingAudioPath = path;
+  const inp = document.getElementById('audioPicker');
+  if(inp){ try{ inp.value=''; }catch(_e){}; inp.click(); }
+}
+
+document.addEventListener('click', function(e){
+  const abtn = e.target.closest('[data-add-audio]');
+  if(abtn){
+    if(!document.body.classList.contains('edit-on')){ toast("Active d\u2019abord ✏️ Modifier"); return; }
+    gatherFromDom();
+    pickAudios(abtn.getAttribute('data-add-audio'));
+    return;
+  }
+
+  const del = e.target.closest('.obj-del');
+  if(del){
+    if(!document.body.classList.contains('edit-on')){ toast("Active d\u2019abord ✏️ Modifier"); return; }
+    gatherFromDom();
+    const kind = del.getAttribute('data-kind');
+    const i = Number(del.getAttribute('data-index'));
+    if(!kind || !Number.isFinite(i)) return;
+    const obj = getByPath(DATA, kind + '['+i+']');
+    if(obj){
+      obj._deleted = true;
+      obj._deletedAt = new Date().toISOString();
+      persist();
+      rerenderKeepMode();
+      toast("Objet supprimé (soft delete)");
+    }
+    return;
+  }
+
+  const audDel = e.target.closest('.au-del');
+  if(audDel){
+    if(!document.body.classList.contains('edit-on')) return;
+    gatherFromDom();
+    const base = audDel.getAttribute('data-audio-path') || '';
+    const idx = Number(audDel.getAttribute('data-audio-index'));
+    if(!base || !Number.isFinite(idx) || idx<0) return;
+    const arr = getByPath(DATA, base);
+    if(Array.isArray(arr) && arr[idx] && arr[idx].dataUrl){
+      arr.splice(idx,1);
+      persist();
+      rerenderKeepMode();
+      toast("Audio supprimé");
+    }else{
+      toast("Audio non supprimable (fichier du ZIP)");
+    }
+    return;
+  }
+});
+
+const __audioPicker = document.getElementById('audioPicker');
+if(__audioPicker){
+  __audioPicker.addEventListener('change', async function(e){
+    const files = Array.from(e.target.files||[]);
+    if(!files.length || !__pendingAudioPath) return;
+    const arr = getByPath(DATA, __pendingAudioPath);
+    if(!Array.isArray(arr)) return;
+
+    for(const f of files){
+      try{
+        const dataUrl = await new Promise(function(resolve,reject){
+          const fr=new FileReader();
+          fr.onerror=reject;
+          fr.onload=function(){ resolve(fr.result); };
+          fr.readAsDataURL(f);
+        });
+        arr.push({name:f.name||'audio', type:f.type||'audio/*', dataUrl:dataUrl, local:true});
+      }catch(_e){}
+    }
+    persist();
+    rerenderKeepMode();
+    toast("Audio(s) ajouté(s)");
+  });
+}
+
+// Adders (bureau)
+const __btnAddSig = document.getElementById('btnAddSig');
+if(__btnAddSig){
+  __btnAddSig.addEventListener('click', function(){
+    if(!document.body.classList.contains('edit-on')){ setEditMode(true); }
+    gatherFromDom();
+    DATA.sig = DATA.sig || [];
+    DATA.sig.push({type:'Directionnelle',style:'Mat',action:'Création',lat:null,lon:null,photos:[],audios:[],comment:''});
+    persist(); rerenderKeepMode(); toast("Signalétique ajoutée");
+  });
+}
+
+const __btnAddBalSec = document.getElementById('btnAddBalSec');
+if(__btnAddBalSec){
+  __btnAddBalSec.addEventListener('click', function(){
+    if(!document.body.classList.contains('edit-on')){ setEditMode(true); }
+    gatherFromDom();
+    DATA.bal = DATA.bal || {};
+    DATA.bal.sections = DATA.bal.sections || [];
+    DATA.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],audios:[],comment:''});
+    persist(); rerenderKeepMode(); toast("Section balisage ajoutée");
+  });
+}
+
+const __btnAddTrav = document.getElementById('btnAddTrav');
+if(__btnAddTrav){
+  __btnAddTrav.addEventListener('click', function(){
+    if(!document.body.classList.contains('edit-on')){ setEditMode(true); }
+    gatherFromDom();
+    DATA.trav = DATA.trav || [];
+    DATA.trav.push({type:'Débroussaillage',linear:'',jh:'',lat:null,lon:null,photos:[],audios:[],comment:'',other:''});
+    persist(); rerenderKeepMode(); toast("Travail ajouté");
+  });
+}
+
+const __btnAddSens = document.getElementById('btnAddSens');
+if(__btnAddSens){
+  __btnAddSens.addEventListener('click', function(){
+    if(!document.body.classList.contains('edit-on')){ setEditMode(true); }
+    gatherFromDom();
+    DATA.sens = DATA.sens || [];
+    DATA.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],audios:[],comment:'',other:''});
+    persist(); rerenderKeepMode(); toast("Point sensible ajouté");
+  });
+}
+
 
 const ARRAY_FIELDS = new Set([
   "bal.types",
@@ -2276,6 +2588,7 @@ document.addEventListener('click', (e)=>{
     });
   }
 
+  rerenderKeepMode();
   toast('Photo supprimée');
 });
 
@@ -2287,6 +2600,7 @@ document.getElementById('btnReset').addEventListener('click', ()=>{
   if(!confirm("Annuler les modifications enregistrées localement pour cette fiche ?")) return;
   localStorage.removeItem(DOC_KEY);
   DATA = JSON.parse(JSON.stringify(ORIGINAL));
+  renderObjects();
   applyToDom(DATA);
   setEditMode(false);
   toast("Modifs annulées");
