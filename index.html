@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.7)</title>
+<title>PWA – Fiche projet itinéraire (1.13.8)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -50,7 +50,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   .footer .row{grid-template-columns:1fr 1fr}
 }
 
-/* --- V1.13.7 : footer actions compact on mobile + contraste Export ZIP --- */
+/* --- V1.13.8 : footer actions compact on mobile + contraste Export ZIP --- */
 .footer button.primary .small{color:rgba(255,255,255,.88)}
 .footer-mini{display:none}
 .footer .actions-toggle{width:auto;padding:8px 12px;border-radius:999px}
@@ -100,7 +100,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.6 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.8 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -474,7 +474,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.7"},
+  meta:{version:"1.13.8"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1376,7 +1376,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   const now = new Date().toISOString();
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.13.6"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.13.8"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1431,7 +1431,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.7)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.8)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1658,7 +1658,7 @@ function renduHTML(stamp=''){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.7)</title>
+<title>Fiche projet itinéraire – Restitution (1.13.8)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1806,7 +1806,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.6</div>
+            <div class="small">1.13.8</div>
           </div>
         </div>
         <hr class="sep">
