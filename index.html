@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.6)</title>
+<title>PWA – Fiche projet itinéraire (1.13.7)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -50,7 +50,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   .footer .row{grid-template-columns:1fr 1fr}
 }
 
-/* --- V1.13.6 : footer actions compact on mobile + contraste Export ZIP --- */
+/* --- V1.13.7 : footer actions compact on mobile + contraste Export ZIP --- */
 .footer button.primary .small{color:rgba(255,255,255,.88)}
 .footer-mini{display:none}
 .footer .actions-toggle{width:auto;padding:8px 12px;border-radius:999px}
@@ -66,7 +66,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
 }
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
-/* V15.1 – objets plus lisibles (sans impact taille) */
+/* V15.1 – objets plus lisibles (sans impact taille) *//
 details.obj{margin:10px 0 12px 14px;border-left:2px solid var(--line);padding-left:8px;background:var(--item)}
 details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 /* flash focus */
@@ -474,7 +474,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.6"},
+  meta:{version:"1.13.7"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1431,13 +1431,13 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.6)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.7)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
 .gps-ok{margin-top:6px;color:#065f46;font-size:.85rem;line-height:1.15}
 
-/* V15.1 – objets plus lisibles (sans impact taille) */
+/* V15.1 – objets plus lisibles (sans impact taille) *//
 details.obj{margin:10px 0 12px 14px;border-left:6px solid var(--line);padding-left:8px;background:var(--item)}
 details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 /* flash focus */
@@ -1658,7 +1658,7 @@ function renduHTML(stamp=''){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.6)</title>
+<title>Fiche projet itinéraire – Restitution (1.13.7)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -2104,11 +2104,11 @@ function renderAutoSummary(){
 
   // Comptes
   if(nSig||nBal||nTrav||nSens){
-    lines.push(`Objets : signalétique ${nSig} • balisage ${nBal} • travaux ${nTrav} • sensibles ${nSens}`);
-  }
+    lines.push('Objets : signalétique ' + nSig + ' • balisage ' + nBal + ' • travaux ' + nTrav + ' • sensibles ' + nSens);
+}
   if(media.photos||media.audios){
-    lines.push(`Médias : ${media.photos} photo(s) • ${media.audios} audio(s)`);
-  }
+    lines.push('Médias : ' + media.photos + ' photo(s) • ' + media.audios + ' audio(s)');
+}
   if(jhEnt!=null) lines.push('Entretien : ' + jhEnt + ' JH/an');
   if(jhBal!=null) lines.push('Balisage : ' + jhBal + ' JH (somme sections)');
   if(jhTrav!=null) lines.push('Travaux : ' + jhTrav + ' JH (somme objets)');
