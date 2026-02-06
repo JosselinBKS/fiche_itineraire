@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.9)</title>
+<title>PWA – Fiche projet itinéraire (1.13.10)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -50,7 +50,7 @@ hr{border:none;border-top:1px dashed var(--line);margin:12px 0}
   .footer .row{grid-template-columns:1fr 1fr}
 }
 
-/* --- V1.13.9 : footer actions compact on mobile + contraste Export ZIP --- */
+/* --- V1.13.10 : footer actions compact on mobile + contraste Export ZIP --- */
 .footer button.primary .small{color:rgba(255,255,255,.88)}
 .footer-mini{display:none}
 .footer .actions-toggle{width:auto;padding:8px 12px;border-radius:999px}
@@ -100,7 +100,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.9 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.10 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -474,7 +474,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.9"},
+  meta:{version:"1.13.10"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1376,7 +1376,7 @@ function gpxForPoints(points, prefix, descFieldFn){
   const now = new Date().toISOString();
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 ` +
-`<gpx version="1.1" creator="FicheItineraireAPN_1.13.9"
+`<gpx version="1.1" creator="FicheItineraireAPN_1.13.10"
 ` +
 ` xmlns="http://www.topografix.com/GPX/1/1"
 ` +
@@ -1431,7 +1431,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.9)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.10)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1658,7 +1658,7 @@ function renduHTML(stamp=''){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.9)</title>
+<title>Fiche projet itinéraire – Restitution (1.13.10)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1806,7 +1806,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.9</div>
+            <div class="small">1.13.10</div>
           </div>
         </div>
         <hr class="sep">
@@ -2266,6 +2266,64 @@ function parseValue(path, raw){
   return (raw==null ? '' : String(raw));
 }
 
+// --- DATALIST (safe suggestions) for repeating objects ---
+const DL_FIELDS = {
+  sig_type: ["Directionnelle","Départ","Information"],
+  sig_style: ["Mat","Jalon signalétique","Jalon balisage","Jalon pastoral","Totem","Départ mineur","Départ majeur","Danger","Patrimoine"],
+  sig_action: ["Maintien","Création","Reprise","Suppression"],
+  bal_action: ["Maintien","Création","Reprise partielle","Reprise complète"],
+  trav_type: ["Débroussaillage","Élagage","Chablis","Reprofilage","Reprise d’assise","Drainage","Purge","Autres"],
+  sens_cat: ["Cohabitation","Obstacle","État du sol","Hydraulique","Ouvrage","Autres"]
+};
+
+function __isDigits(s){
+  s = String(s||"");
+  if(!s.length) return false;
+  for(let i=0;i<s.length;i++){
+    const c = s.charCodeAt(i);
+    if(c < 48 || c > 57) return false;
+  }
+  return true;
+}
+
+function datalistForPath(path){
+  const p = pathToParts(path);
+  // sig[i].type/style/action
+  if(p[0]==="sig" && __isDigits(p[1]) && p.length>=3){
+    if(p[2]==="type") return "dl_sig_type";
+    if(p[2]==="style") return "dl_sig_style";
+    if(p[2]==="action") return "dl_sig_action";
+  }
+  // bal.sections[i].action
+  if(p[0]==="bal" && p[1]==="sections" && __isDigits(p[2]) && p[3]==="action") return "dl_bal_action";
+  // trav[i].type
+  if(p[0]==="trav" && __isDigits(p[1]) && p[2]==="type") return "dl_trav_type";
+  // sens[i].cat
+  if(p[0]==="sens" && __isDigits(p[1]) && p[2]==="cat") return "dl_sens_cat";
+  return null;
+}
+
+function ensureDatalists(){
+  if(document.getElementById("dl_sig_type")) return;
+  function mk(id, arr){
+    const dl = document.createElement("datalist");
+    dl.id = id;
+    (arr||[]).forEach(v=>{
+      const opt = document.createElement("option");
+      opt.value = String(v);
+      dl.appendChild(opt);
+    });
+    document.body.appendChild(dl);
+  }
+  mk("dl_sig_type", DL_FIELDS.sig_type);
+  mk("dl_sig_style", DL_FIELDS.sig_style);
+  mk("dl_sig_action", DL_FIELDS.sig_action);
+  mk("dl_bal_action", DL_FIELDS.bal_action);
+  mk("dl_trav_type", DL_FIELDS.trav_type);
+  mk("dl_sens_cat", DL_FIELDS.sens_cat);
+}
+// --- end datalist helpers ---
+
 function applyToDom(data){
   document.querySelectorAll('[data-path]').forEach(el=>{
     const path = el.getAttribute('data-path');
@@ -2280,6 +2338,12 @@ function applyToDom(data){
       }
       return;
     }
+
+    if(el.tagName === 'INPUT'){
+      el.value = (v==null ? '' : String(v));
+      return;
+    }
+
 
     if(path === STAR_FIELD){
       const n = Number(v);
@@ -2298,7 +2362,7 @@ function applyToDom(data){
 }
 
 function gatherFromDom(){
-  const next = structuredClone(DATA);
+  const next = (typeof structuredClone==='function') ? structuredClone(DATA) : JSON.parse(JSON.stringify(DATA));
 
   document.querySelectorAll('[data-path]').forEach(el=>{
     const path = el.getAttribute('data-path');
@@ -2311,6 +2375,8 @@ function gatherFromDom(){
       }else{
         raw = el.value;
       }
+    }else if(el.tagName === 'INPUT'){
+      raw = el.value;
     }else{
       raw = (el.textContent||'').trim();
     }
@@ -2330,6 +2396,7 @@ function setEditMode(on){
   document.body.classList.toggle('edit-on', editOn);
 
   if(editOn){
+    ensureDatalists();
     document.querySelectorAll('[data-path]').forEach(el=>{
       const path = el.getAttribute('data-path');
       if(!path) return;
@@ -2337,6 +2404,19 @@ function setEditMode(on){
       const isStar = (path === STAR_FIELD);
       const isSelect = Object.prototype.hasOwnProperty.call(SELECT_FIELDS, path);
       const isMulti = Object.prototype.hasOwnProperty.call(MULTI_OPTIONS, path);
+      // Safe datalist swap for repeating objects (sig/bal.sections/trav/sens)
+      const dlId = datalistForPath(path);
+      if(dlId && el.tagName !== 'INPUT' && el.tagName !== 'SELECT'){
+        const inp = document.createElement('input');
+        inp.className = 'editable';
+        inp.setAttribute('data-path', path);
+        inp.setAttribute('data-swap', 'dl1');
+        inp.setAttribute('list', dlId);
+        const v0 = getByPath(DATA, path);
+        inp.value = (v0==null ? '' : String(v0));
+        el.replaceWith(inp);
+        return;
+      }
 
       if((isStar || isSelect || isMulti) && el.tagName !== 'SELECT'){
         const sel = document.createElement('select');
@@ -2382,6 +2462,17 @@ function setEditMode(on){
       }
     });
   }else{
+    // Convert datalist inputs back to spans
+    document.querySelectorAll("input.editable[data-swap='dl1']").forEach(inp=>{
+      const path = inp.getAttribute('data-path');
+      const span = document.createElement('span');
+      span.className = 'editable';
+      span.setAttribute('data-path', path);
+      const v = getByPath(DATA, path);
+      span.textContent = (v==null ? '' : String(v));
+      inp.replaceWith(span);
+    });
+
     document.querySelectorAll("select.editable[data-swap='1']").forEach(sel=>{
       const path = sel.getAttribute('data-path');
       const span = document.createElement('span');
