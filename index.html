@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.10)</title>
+<title>PWA – Fiche projet itinéraire (1.13.11)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -100,12 +100,12 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.10 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.11 (restitution)</h1></header>
 
 <main>
 <!-- A -->
 <details class="section" data-sec="A" data-accordion="one" open>
-  <summary>A. Identification <span class="badge terrain">terrain</span></summary>
+  <summary>A. Informations générales <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <label>Nom provisoire / code de l’itinéraire</label>
     <input id="p_name" placeholder="Ex : BOUCLE_SAINT_BÉAT_2026">
@@ -218,7 +218,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 
 <!-- F -->
 <details class="section" data-sec="F" data-accordion="one">
-  <summary>F. Points sensibles & pb de tronçons <span class="badge terrain">terrain</span></summary>
+  <summary>F. Points sensibles <span class="badge terrain">terrain</span></summary>
   <div class="sec">
     <button class="ghost" onclick="addSens()">➕ Ajouter un point sensible</button>
     <div id="sens_list"></div>
@@ -474,7 +474,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.10"},
+  meta:{version:"1.13.11"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1431,7 +1431,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.10)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.11)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1658,7 +1658,7 @@ function renduHTML(stamp=''){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.10)</title>
+<title>Fiche projet itinéraire – Restitution (1.13.11)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1671,6 +1671,7 @@ function renduHTML(stamp=''){
   --bF: rgba(220,38,38,.07);
   --bG: rgba(16,185,129,.08);
   --bH: rgba(99,102,241,.08);
+  --bI: rgba(14,116,144,.08);
   --bK: rgba(14,116,144,.10);
 }
 *{box-sizing:border-box}
@@ -1703,6 +1704,7 @@ details.sec[open]>summary{border-bottom:1px solid var(--line)}
 .secF>summary{background:var(--bF)}
 .secG>summary{background:var(--bG)}
 .secH>summary{background:var(--bH)}
+.secI>summary{background:var(--bI)}
 .secK>summary{background:var(--bK)}
 
 .kvgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -1806,7 +1808,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.10</div>
+            <div class="small">1.13.11</div>
           </div>
         </div>
         <hr class="sep">
@@ -1825,75 +1827,7 @@ audio{width:100%}
 <div class="page">
 
 <details class="sec secB" id="SEC_B">
-  <summary><span class="sec-letter">B</span> Caractéristiques de l’itinéraire <span class="sec-pill">fiche</span></summary>
-  <div class="sec-body">
-    <div class="card">
-      <div class="kvgrid">
-        ${fieldRow("Type de parcours", it.route_type||'', "bureau.it.route_type")}
-        ${fieldRow("Thème principal", it.theme||'', "bureau.it.theme")}
-        ${fieldRow("Longueur (km)", it.length||'', "bureau.it.length")}
-        ${fieldRow("Dénivelé + (m)", it.dplus||'', "bureau.it.dplus")}
-        ${fieldRow("Dénivelé – (m)", it.dminus||'', "bureau.it.dminus")}
-        ${fieldRow("Temps estimé", it.time||'', "bureau.it.time")}
-        ${fieldRow("Public cible", it.public||'', "bureau.it.public")}
-        ${fieldRow("Saisonnalité", it.season||'', "bureau.it.season")}
-        ${fieldRow("Sens conseillé", it.direction||'', "bureau.it.direction")}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Commentaires", it.com||'', "bureau.it.com")}
-    </div>
-  </div>
-</details>
-
-<details class="sec secC" id="SEC_C">
-  <summary><span class="sec-letter">C</span> Foncier, nature & règles <span class="sec-pill">interne</span></summary>
-  <div class="sec-body">
-    <div class="card">
-      <div class="subttl">Foncier &amp; cadastre</div>
-      <div class="kvgrid">
-        ${fieldRow("Communes traversées", foncier.communes||'', "bureau.foncier.communes")}
-        ${fieldRow("Statut du support", foncier.support||'', "bureau.foncier.support")}
-        ${fieldRow("Sécurisation foncière", foncier.secur||'', "bureau.foncier.secur")}
-        ${fieldRow("Blocages (liste)", (foncier.blocages||[]).join(', '), "bureau.foncier.blocages")}
-        ${fieldRow("Démarches (liste)", (foncier.demarches||[]).join(', '), "bureau.foncier.demarches")}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Parcelles (si utile)", foncier.parcelles||'', "bureau.foncier.parcelles")}
-      <div style="margin-top:10px"></div>
-      ${noteBlock("Commentaire", foncier.comment||'', "bureau.foncier.comment")}
-      <hr class="sep">
-      <div class="subttl">Contraintes (nature &amp; règles)</div>
-      <div class="kvgrid">
-        ${fieldRow("Enjeux (liste)", (env.enjeux||[]).join(', '), "bureau.env.enjeux")}
-        ${fieldRow("Zones traversées (liste)", (env.zones||[]).join(', '), "bureau.env.zones")}
-      </div>
-      <hr class="sep">
-      ${noteBlock("Commentaires (enjeux)", env.enjeux_com||'', "bureau.env.enjeux_com")}
-      <div style="margin-top:10px"></div>
-      ${noteBlock("Contraintes identifiées", env.constraints||'', "bureau.env.constraints")}
-      <div style="margin-top:10px"></div>
-      ${noteBlock("Procédures / vigilances", env.procedures||'', "bureau.env.procedures")}
-    </div>
-  </div>
-</details>
-
-<details class="sec secD" id="SEC_D">
-  <summary><span class="sec-letter">D</span> Plan d’actions & phasage <span class="sec-pill">à suivre</span></summary>
-  <div class="sec-body">
-    <div class="card">
-      ${noteBlock("Court terme", plan.short||'', "bureau.plan.short")}
-      <div style="margin-top:10px"></div>
-      ${noteBlock("Moyen terme", plan.mid||'', "bureau.plan.mid")}
-      <div style="margin-top:10px"></div>
-      ${noteBlock("Phasage", plan.phasage||'', "bureau.plan.phasage")}
-      <div style="margin-top:10px"></div>
-      ${noteBlock("Commentaires", plan.com||'', "bureau.plan.com")}
-    </div>
-  </div>
-</details>
-
-<details class="sec secE" id="SEC_E">
-  <summary><span class="sec-letter">E</span> Signalétique <span class="sec-pill">${nSig} objet(s)</span></summary>
+  <summary><span class="sec-letter">B</span> Signalétique <span class="sec-pill">${nSig} objet(s)</span></summary>
   <div class="sec-body">
     ${(S.sig||[]).map((o,i)=>`
       <div class="obj">
@@ -1918,8 +1852,8 @@ audio{width:100%}
   </div>
 </details>
 
-<details class="sec secF" id="SEC_F">
-  <summary><span class="sec-letter">F</span> Balisage <span class="sec-pill">${nBal} section(s)</span></summary>
+<details class="sec secC" id="SEC_C">
+  <summary><span class="sec-letter">C</span> Balisage <span class="sec-pill">${nBal} section(s)</span></summary>
   <div class="sec-body">
     <div class="card">
       <div class="kvgrid">
@@ -1953,8 +1887,8 @@ audio{width:100%}
   </div>
 </details>
 
-<details class="sec secG" id="SEC_G">
-  <summary><span class="sec-letter">G</span> Travaux de réouverture <span class="sec-pill">${nTrav} objet(s)</span></summary>
+<details class="sec secD" id="SEC_D">
+  <summary><span class="sec-letter">D</span> Travaux de réouverture <span class="sec-pill">${nTrav} objet(s)</span></summary>
   <div class="sec-body">
     ${(S.trav||[]).map((o,i)=>`
       <div class="obj">
@@ -1980,8 +1914,8 @@ audio{width:100%}
   </div>
 </details>
 
-<details class="sec secH" id="SEC_H">
-  <summary><span class="sec-letter">H</span> Entretien annuel estimé <span class="sec-pill">JH/an</span></summary>
+<details class="sec secE" id="SEC_E">
+  <summary><span class="sec-letter">E</span> Entretien annuel estimé <span class="sec-pill">JH/an</span></summary>
   <div class="sec-body">
     <div class="card">
       <div class="kvgrid">
@@ -1994,8 +1928,8 @@ audio{width:100%}
   </div>
 </details>
 
-<details class="sec secH" id="SEC_I">
-  <summary><span class="sec-letter">I</span> Points sensibles & pb de tronçons <span class="sec-pill">${nSens} objet(s)</span></summary>
+<details class="sec secF" id="SEC_F">
+  <summary><span class="sec-letter">F</span> Points sensibles <span class="sec-pill">${nSens} objet(s)</span></summary>
   <div class="sec-body">
     ${(S.sens||[]).map((o,i)=>`
       <div class="obj">
@@ -2019,8 +1953,76 @@ audio{width:100%}
   </div>
 </details>
 
+<details class="sec secG" id="SEC_G">
+  <summary><span class="sec-letter">G</span> Caractéristiques itinéraires <span class="sec-pill">fiche</span></summary>
+  <div class="sec-body">
+    <div class="card">
+      <div class="kvgrid">
+        ${fieldRow("Type de parcours", it.route_type||'', "bureau.it.route_type")}
+        ${fieldRow("Thème principal", it.theme||'', "bureau.it.theme")}
+        ${fieldRow("Longueur (km)", it.length||'', "bureau.it.length")}
+        ${fieldRow("Dénivelé + (m)", it.dplus||'', "bureau.it.dplus")}
+        ${fieldRow("Dénivelé – (m)", it.dminus||'', "bureau.it.dminus")}
+        ${fieldRow("Temps estimé", it.time||'', "bureau.it.time")}
+        ${fieldRow("Public cible", it.public||'', "bureau.it.public")}
+        ${fieldRow("Saisonnalité", it.season||'', "bureau.it.season")}
+        ${fieldRow("Sens conseillé", it.direction||'', "bureau.it.direction")}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Commentaires", it.com||'', "bureau.it.com")}
+    </div>
+  </div>
+</details>
+
+<details class="sec secH" id="SEC_H">
+  <summary><span class="sec-letter">H</span> Foncier, nature & règles <span class="sec-pill">interne</span></summary>
+  <div class="sec-body">
+    <div class="card">
+      <div class="subttl">Foncier &amp; cadastre</div>
+      <div class="kvgrid">
+        ${fieldRow("Communes traversées", foncier.communes||'', "bureau.foncier.communes")}
+        ${fieldRow("Statut du support", foncier.support||'', "bureau.foncier.support")}
+        ${fieldRow("Sécurisation foncière", foncier.secur||'', "bureau.foncier.secur")}
+        ${fieldRow("Blocages (liste)", (foncier.blocages||[]).join(', '), "bureau.foncier.blocages")}
+        ${fieldRow("Démarches (liste)", (foncier.demarches||[]).join(', '), "bureau.foncier.demarches")}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Parcelles (si utile)", foncier.parcelles||'', "bureau.foncier.parcelles")}
+      <div style="margin-top:10px"></div>
+      ${noteBlock("Commentaire", foncier.comment||'', "bureau.foncier.comment")}
+      <hr class="sep">
+      <div class="subttl">Contraintes (nature &amp; règles)</div>
+      <div class="kvgrid">
+        ${fieldRow("Enjeux (liste)", (env.enjeux||[]).join(', '), "bureau.env.enjeux")}
+        ${fieldRow("Zones traversées (liste)", (env.zones||[]).join(', '), "bureau.env.zones")}
+      </div>
+      <hr class="sep">
+      ${noteBlock("Commentaires (enjeux)", env.enjeux_com||'', "bureau.env.enjeux_com")}
+      <div style="margin-top:10px"></div>
+      ${noteBlock("Contraintes identifiées", env.constraints||'', "bureau.env.constraints")}
+      <div style="margin-top:10px"></div>
+      ${noteBlock("Procédures / vigilances", env.procedures||'', "bureau.env.procedures")}
+    </div>
+  </div>
+</details>
+
+<details class="sec secI" id="SEC_I">
+  <summary><span class="sec-letter">I</span> Plan d’actions & phasage <span class="sec-pill">à suivre</span></summary>
+  <div class="sec-body">
+    <div class="card">
+      ${noteBlock("Court terme", plan.short||'', "bureau.plan.short")}
+      <div style="margin-top:10px"></div>
+      ${noteBlock("Moyen terme", plan.mid||'', "bureau.plan.mid")}
+      <div style="margin-top:10px"></div>
+      ${noteBlock("Phasage", plan.phasage||'', "bureau.plan.phasage")}
+      <div style="margin-top:10px"></div>
+      ${noteBlock("Commentaires", plan.com||'', "bureau.plan.com")}
+    </div>
+  </div>
+</details>
+
 <details class="sec secK" id="SEC_K">
-  <summary><span class="sec-letter">K</span> Décision & mise en tourisme <span class="sec-pill">synthèse</span></summary>
+  <summary><span class="sec-letter">K</span> Décision & arbitrage <span class="sec-pill">synthèse</span></summary>
   <div class="sec-body">
     <div class="card">
       <div class="kvgrid">
