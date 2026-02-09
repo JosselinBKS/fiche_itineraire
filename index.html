@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.12)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PWA – Fiche projet itinéraire (1.13.13)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -97,10 +97,58 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 @media (max-width:720px){ .bureaubar button{width:100%} }
 
+/* --- V1.13.13 : UX mobile light (PWA) --- */
+body{line-height:1.35;-webkit-text-size-adjust:100%}
+details.section,.item{box-shadow:0 1px 2px rgba(0,0,0,.04)}
+
+/* Indicateurs d'ouverture (sans modifier le DOM) */
+details.section>summary,details.obj>summary{position:relative;padding-right:40px}
+details.section>summary::after,details.obj>summary::after{
+  content:"▾";
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  font-weight:900;
+  color:var(--muted);
+  opacity:.85;
+  transition:transform .18s ease;
+}
+details.section[open]>summary::after,details.obj[open]>summary::after{transform:translateY(-50%) rotate(-180deg)}
+
+summary:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid rgba(15,118,110,.28);
+  outline-offset:2px;
+}
+input:focus,select:focus,textarea:focus{border-color:rgba(15,118,110,.55)}
+button{touch-action:manipulation}
+.footer{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+
+@media (max-width:720px){
+  body{font-size:16px}
+  header{padding:10px 12px}
+  h1{font-size:1rem}
+  main{padding:12px 12px calc(72px + env(safe-area-inset-bottom))}
+  details.section{border-radius:14px}
+  details.section>summary{padding:12px 12px}
+  .sec{padding:12px}
+  label{font-size:.92rem}
+  input,select,textarea,button{font-size:16px;min-height:44px;padding:12px 12px;border-radius:12px}
+  textarea{min-height:96px}
+  .actions{grid-template-columns:1fr}
+  details.obj{margin:10px 0 12px 8px;padding-left:8px}
+  .photos{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .footer{padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+}
+
+@media (max-width:520px){
+  .media-actions,.photo-actions,.audio-actions,.bureau-tools{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.12 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.13 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -474,7 +522,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.12"},
+  meta:{version:"1.13.13"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1431,7 +1479,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.12)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.13)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1666,8 +1714,8 @@ function renduHTML(stamp=''){
   let h = `<!doctype html>
 <html lang="fr"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.12)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fiche projet itinéraire – Restitution (1.13.13)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1821,7 +1869,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.12</div>
+            <div class="small">1.13.13</div>
           </div>
         </div>
         <hr class="sep">
