@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PWA – Fiche projet itinéraire (1.13.13)</title>
+<title>PWA – Fiche projet itinéraire (1.14.2)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -97,7 +97,7 @@ details.obj > summary{font-weight:900;font-style:italic;background:var(--item2)}
 button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 @media (max-width:720px){ .bureaubar button{width:100%} }
 
-/* --- V1.13.13 : UX mobile light (PWA) --- */
+/* --- V1.14.2 : UX mobile light (PWA) --- */
 body{line-height:1.35;-webkit-text-size-adjust:100%}
 details.section,.item{box-shadow:0 1px 2px rgba(0,0,0,.04)}
 
@@ -124,6 +124,11 @@ input:focus,select:focus,textarea:focus{border-color:rgba(15,118,110,.55)}
 button{touch-action:manipulation}
 .footer{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
 
+/* Différencier visuellement les champs proposition vs saisi */
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.55;font-style:italic}
+.suggested{color:var(--muted);font-style:italic;border-style:dashed;background:rgba(15,118,110,.03)}
+.suggested:focus{color:var(--ink);font-style:normal;border-style:solid;background:#fff}
+
 @media (max-width:720px){
   body{font-size:16px}
   header{padding:10px 12px}
@@ -139,16 +144,20 @@ button{touch-action:manipulation}
   details.obj{margin:10px 0 12px 8px;padding-left:8px}
   .photos{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
   .footer{padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+  /* Mobile : on retire Tout déplier / Tout replier */
+  #btn_open_bureau,#btn_close_bureau{display:none}
 }
 
 @media (max-width:520px){
-  .media-actions,.photo-actions,.audio-actions,.bureau-tools{grid-template-columns:1fr}
+  /* Mobile étroit : caméra + enregistrer sur 1 ligne */
+  .media-actions{grid-template-columns:1fr 1fr}
+  .photo-actions,.audio-actions,.bureau-tools{grid-template-columns:1fr}
 }
 
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.13 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.14.2 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -522,7 +531,7 @@ button{touch-action:manipulation}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.13"},
+  meta:{version:"1.14.2"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -617,6 +626,66 @@ function closeSiblingsByPrefix(prefix, keepId){
 function captureOpenDetails(){
   return Array.from(document.querySelectorAll('details[open][id]')).map(d=>d.id);
 }
+// --- UX : distinguer champs par défaut (propositions) vs saisis ---
+const __touched = new Set();
+
+function __bindTouched(el, key){
+  if(!el) return;
+  if(el.dataset && el.dataset.touchedBound==='1') return;
+  const k = key || el.id || '';
+  const mark = ()=>{
+    __touched.add(k);
+    el.classList.remove('suggested');
+  };
+  el.addEventListener('change', mark, {passive:true});
+  el.addEventListener('input', mark, {passive:true});
+  if(el.dataset) el.dataset.touchedBound='1';
+}
+
+function __markSuggested(el, key, defaultVal){
+  if(!el) return;
+  const k = key || el.id || '';
+  __bindTouched(el, k);
+  const v = (el.value==null?'':String(el.value));
+  const d = (defaultVal==null?'':String(defaultVal));
+  if(!__touched.has(k) && v===d && v!==''){
+    el.classList.add('suggested');
+  }else{
+    el.classList.remove('suggested');
+  }
+}
+
+function applySuggestedUI(){
+  // Champs fixes (Bureau / Caractéristiques / Décision)
+  __markSuggested(document.getElementById('p_type'), 'p_type', 'Création');
+  __markSuggested(document.getElementById('bal_action_global'), 'bal_action_global', 'Maintien');
+  __markSuggested(document.getElementById('it_route_type'), 'it_route_type', 'Boucle');
+  __markSuggested(document.getElementById('it_public'), 'it_public', 'Grand public');
+  __markSuggested(document.getElementById('it_season'), 'it_season', 'Toute l’année');
+  __markSuggested(document.getElementById('dec_go'), 'dec_go', 'GO');
+  __markSuggested(document.getElementById('tour_pot'), 'tour_pot', 'Moyen');
+
+  // Champs dynamiques (objets terrain)
+  (S.sig||[]).forEach((o,i)=>{
+    __markSuggested(document.getElementById(`sig_type_${i}`), `sig_type_${i}`, 'Directionnelle');
+    __markSuggested(document.getElementById(`sig_action_${i}`), `sig_action_${i}`, 'Création');
+    // Style par défaut dépend du type (première entrée de la liste)
+    let def = 'Mat';
+    if((o.type||'')==='Départ') def = 'Départ mineur';
+    if((o.type||'')==='Information') def = 'Danger';
+    __markSuggested(document.getElementById(`sig_style_${i}`), `sig_style_${i}`, def);
+  });
+  (S.bal && S.bal.sections ? S.bal.sections : []).forEach((o,i)=>{
+    __markSuggested(document.getElementById(`bal_action_${i}`), `bal_action_${i}`, 'Reprise partielle');
+  });
+  (S.trav||[]).forEach((o,i)=>{
+    __markSuggested(document.getElementById(`trav_type_${i}`), `trav_type_${i}`, 'Débroussaillage');
+  });
+  (S.sens||[]).forEach((o,i)=>{
+    __markSuggested(document.getElementById(`sens_cat_${i}`), `sens_cat_${i}`, 'Cohabitation');
+  });
+}
+
 function restoreOpenDetails(ids){
   ids.forEach(id=>{ const d=document.getElementById(id); if(d) d.open=true; });
 }
@@ -877,6 +946,7 @@ async function onAudioFiles(e, kind, idx){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 
 function addPhotoGrid(containerId, listRef, idx){
@@ -903,6 +973,7 @@ function delPhoto(containerId, idx, pi){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 
 
@@ -942,7 +1013,7 @@ function renderAllLists(){
           <div class="row2">
             <div>
               <label>Action</label>
-              <select onchange="S.sig[${i}].action=this.value">
+              <select id="sig_action_${i}" onchange="S.sig[${i}].action=this.value">
                 <option ${o.action==='Maintien'?'selected':''}>Maintien</option>
                 <option ${o.action==='Création'?'selected':''}>Création</option>
                 <option ${o.action==='Reprise'?'selected':''}>Reprise</option>
@@ -995,7 +1066,7 @@ function renderAllLists(){
           <div class="row3">
             <div>
               <label>Intervention</label>
-              <select onchange="S.bal.sections[${i}].action=this.value">
+              <select id="bal_action_${i}" onchange="S.bal.sections[${i}].action=this.value">
                 <option ${o.action==='Maintien'?'selected':''}>Maintien</option>
                 <option ${o.action==='Création'?'selected':''}>Création</option>
                 <option ${o.action==='Reprise partielle'?'selected':''}>Reprise partielle</option>
@@ -1052,7 +1123,7 @@ function renderAllLists(){
         <summary>Travail n°${i+1}${((o.photos?.length||0)>0)?' ('+(o.photos.length)+' photo'+(o.photos.length>1?'s':'')+')':''}</summary>
         <div class="inner">
           <label>Type de travaux</label>
-          <select onchange="S.trav[${i}].type=this.value">
+          <select id="trav_type_${i}" onchange="S.trav[${i}].type=this.value">
             <option ${o.type==='Débroussaillage'?'selected':''}>Débroussaillage</option>
             <option ${o.type==='Élagage'?'selected':''}>Élagage</option>
             <option ${o.type==='Chablis'?'selected':''}>Chablis</option>
@@ -1119,7 +1190,7 @@ function renderAllLists(){
           <div class="row2">
             <div>
               <label>Catégorie</label>
-              <select onchange="S.sens[${i}].cat=this.value">
+              <select id="sens_cat_${i}" onchange="S.sens[${i}].cat=this.value">
                 <option ${o.cat==='Cohabitation'?'selected':''}>Cohabitation</option>
                 <option ${o.cat==='Obstacle'?'selected':''}>Obstacle</option>
                 <option ${o.cat==='État du sol'?'selected':''}>État du sol</option>
@@ -1167,6 +1238,7 @@ function renderAllLists(){
   updateDerived();
 
   restoreOpenDetails(__openBefore);
+  applySuggestedUI();
   if(__focusId){
     if(__exclusiveFocusPrefix){
       // Close other terrain sections (but keep bureau sections open)
@@ -1212,6 +1284,7 @@ function addSig(){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 function addBalSec(){
   S.bal.sections.push({action:'Reprise partielle',linear:'',jh:'',lat:null,lon:null,photos:[],audios:[],comment:''});
@@ -1222,6 +1295,7 @@ function addBalSec(){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 function delBalSec(i){ S.bal.sections.splice(i,1); saveAll(false); renderAllLists(); }
 function addTrav(){
@@ -1233,6 +1307,7 @@ function addTrav(){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 function addSens(){
   S.sens.push({cat:'Cohabitation',lat:null,lon:null,photos:[],audios:[],comment:'',other:''});
@@ -1243,6 +1318,7 @@ function addSens(){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 function delItem(kind, i){
   S[kind].splice(i,1);
@@ -1400,6 +1476,7 @@ function loadAll(){
   renderAllLists();
   S.projectAudios = S.projectAudios || [];
   renderAudioList('projAudios', S.projectAudios);
+  applySuggestedUI();
 }
 
 function resetAll(){
@@ -1479,7 +1556,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.13)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.14.2)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1715,7 +1792,7 @@ function renduHTML(stamp=''){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fiche projet itinéraire – Restitution (1.13.13)</title>
+<title>Fiche projet itinéraire – Restitution (1.14.2)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1869,7 +1946,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.13</div>
+            <div class="small">1.14.2</div>
           </div>
         </div>
         <hr class="sep">
@@ -2859,6 +2936,7 @@ async function importProject(event){
 async function applyImportedData(data, zip){
   // Replace state and persist
   S = data;
+  try{ __touched.clear(); }catch(_e){}
 
   // Normalize arrays to avoid crashes
   S.sig = S.sig || [];
@@ -2877,6 +2955,7 @@ async function applyImportedData(data, zip){
   S.sens.forEach(o=>o.audios = o.audios || []);
 
   // Save and reload UI
+  try{ __touched.clear(); }catch(_e){}
   localStorage.setItem(KEY, JSON.stringify(S));
   loadAll();
 initBureauButtons(); // this also renders lists
