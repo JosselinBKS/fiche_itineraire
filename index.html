@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PWA – Fiche projet itinéraire (1.13.11)</title>
+<title>PWA – Fiche projet itinéraire (1.13.12)</title>
 <style>
 :root{
   --bg:#f9fafb;--ink:#111827;--line:#e5e7eb;
@@ -100,7 +100,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 </style>
 </head>
 <body>
-<header><h1>Fiche projet itinéraire – 1.13.11 (restitution)</h1></header>
+<header><h1>Fiche projet itinéraire – 1.13.12 (restitution)</h1></header>
 
 <main>
 <!-- A -->
@@ -474,7 +474,7 @@ button.primary.blue{background:#1e40af;border-color:#1e40af;color:#fff}
 <script>
 // -------------------- STATE --------------------
 let S = {
-  meta:{version:"1.13.11"},
+  meta:{version:"1.13.12"},
   project:{},
   projectAudios:[],
   sig:[],
@@ -1431,7 +1431,7 @@ function escapeXml(s){
 
 function bureauHTML(){
   const p=S.project||{};
-  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.11)</title>
+  let h=`<!doctype html><meta charset="utf-8"><title>PWA – Fiche projet itinéraire (1.13.12)</title>
   <style>body{font-family:system-ui;padding:18px} h1{margin:0 0 6px} h2{margin-top:18px}
   .muted{color:#666} .card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
   img{max-width:260px;border-radius:8px;margin:6px 6px 0 0}
@@ -1644,7 +1644,16 @@ function renduHTML(stamp=''){
     return `<div class="small"><strong>${esc(title)}</strong><div class="note editable" data-path="${esc(path)}">${esc(v)}</div></div>`;
   }
 
-  function sectionTitle(title, sub){
+  function noteBlockPH(title, value, path, placeholder, help){
+    const v = (value==null) ? '' : String(value);
+    const ph = (placeholder==null) ? '' : String(placeholder);
+    const hp = (help==null) ? '' : String(help);
+    const phAttr = ph ? ` data-placeholder="${esc(ph)}"` : '';
+    const helpHtml = hp ? `<div class="help noprint">${esc(hp)}</div>` : '';
+    return `<div class="small"><strong>${esc(title)}</strong><div class="note editable" data-path="${esc(path)}"${phAttr}>${esc(v)}</div>${helpHtml}</div>`;
+  }
+
+    function sectionTitle(title, sub){
     return `<div class="sec-title"><h2>${esc(title)}</h2>${sub?`<div class="sec-sub">${esc(sub)}</div>`:''}</div>`;
   }
 
@@ -1658,7 +1667,7 @@ function renduHTML(stamp=''){
 <html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiche projet itinéraire – Restitution (1.13.11)</title>
+<title>Fiche projet itinéraire – Restitution (1.13.12)</title>
 <style>
 :root{
   --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
@@ -1742,6 +1751,10 @@ audio{width:100%}
 .status{color:var(--muted);font-size:.9rem}
 .editable{border-radius:8px}
 .editable:empty:before{content:'—';color:var(--muted)}
+	.help{display:none;margin-top:6px;color:var(--muted);font-size:.85rem;line-height:1.25}
+	.edit-on .help{display:block}
+	.edit-on .editable.ce[data-placeholder].is-empty:before{content:attr(data-placeholder);color:var(--muted);white-space:pre-wrap}
+
 .edit-on .editable{outline:2px dashed rgba(15,118,110,.25);padding:2px 4px}
 .edit-on .editable:focus{outline:2px solid rgba(15,118,110,.55);background:rgba(15,118,110,.06)}
 
@@ -1808,7 +1821,7 @@ audio{width:100%}
           </div>
           <div>
             <div class="small"><strong>Version</strong></div>
-            <div class="small">1.13.11</div>
+            <div class="small">1.13.12</div>
           </div>
         </div>
         <hr class="sep">
@@ -1969,7 +1982,7 @@ audio{width:100%}
         ${fieldRow("Sens conseillé", it.direction||'', "bureau.it.direction")}
       </div>
       <hr class="sep">
-      ${noteBlock("Commentaires", it.com||'', "bureau.it.com")}
+      ${noteBlockPH("Commentaires", it.com||'', "bureau.it.com", "Ex : infos rédactionnelles (difficulté, accès, saison, points d’intérêt).")}
     </div>
   </div>
 </details>
@@ -1987,9 +2000,9 @@ audio{width:100%}
         ${fieldRow("Démarches (liste)", (foncier.demarches||[]).join(', '), "bureau.foncier.demarches")}
       </div>
       <hr class="sep">
-      ${noteBlock("Parcelles (si utile)", foncier.parcelles||'', "bureau.foncier.parcelles")}
+      ${noteBlockPH("Parcelles (si utile)", foncier.parcelles||'', "bureau.foncier.parcelles", "Ex : références cadastrales, propriétaires, contacts, servitudes.", "Aide : citer les parcelles seulement si nécessaire (zones sensibles, blocages, conventions).")}
       <div style="margin-top:10px"></div>
-      ${noteBlock("Commentaire", foncier.comment||'', "bureau.foncier.comment")}
+      ${noteBlockPH("Commentaire", foncier.comment||'', "bureau.foncier.comment", "Ex : contexte foncier, positions, risques de blocage.")}
       <hr class="sep">
       <div class="subttl">Contraintes (nature &amp; règles)</div>
       <div class="kvgrid">
@@ -1997,11 +2010,11 @@ audio{width:100%}
         ${fieldRow("Zones traversées (liste)", (env.zones||[]).join(', '), "bureau.env.zones")}
       </div>
       <hr class="sep">
-      ${noteBlock("Commentaires (enjeux)", env.enjeux_com||'', "bureau.env.enjeux_com")}
+      ${noteBlockPH("Commentaires (enjeux)", env.enjeux_com||'', "bureau.env.enjeux_com", "Ex : précisions sur les enjeux, périodes sensibles, mesures à prévoir.")}
       <div style="margin-top:10px"></div>
-      ${noteBlock("Contraintes identifiées", env.constraints||'', "bureau.env.constraints")}
+      ${noteBlockPH("Contraintes identifiées", env.constraints||'', "bureau.env.constraints", "Ex : ENS/Natura, pâturage, chasse, arrêté, réglementation.", "Aide : préciser la règle + l’impact opérationnel (périodes, méthodes, interdictions).")}
       <div style="margin-top:10px"></div>
-      ${noteBlock("Procédures / vigilances", env.procedures||'', "bureau.env.procedures")}
+      ${noteBlockPH("Procédures / vigilances", env.procedures||'', "bureau.env.procedures", "Ex : autorisations, concertation, prescriptions, mesures d’évitement.")}
     </div>
   </div>
 </details>
@@ -2010,13 +2023,13 @@ audio{width:100%}
   <summary><span class="sec-letter">I</span> Plan d’actions & phasage <span class="sec-pill">à suivre</span></summary>
   <div class="sec-body">
     <div class="card">
-      ${noteBlock("Court terme", plan.short||'', "bureau.plan.short")}
+      ${noteBlockPH("Court terme", plan.short||'', "bureau.plan.short", "Ex : actions urgentes (sécurité, dégagement, reprise ponctuelle).")}
       <div style="margin-top:10px"></div>
-      ${noteBlock("Moyen terme", plan.mid||'', "bureau.plan.mid")}
+      ${noteBlockPH("Moyen terme", plan.mid||'', "bureau.plan.mid", "Ex : actions structurantes (signalétique, travaux, mise en cohérence).")}
       <div style="margin-top:10px"></div>
-      ${noteBlock("Phasage", plan.phasage||'', "bureau.plan.phasage")}
+      ${noteBlockPH("Phasage", plan.phasage||'', "bureau.plan.phasage", "Ex : Phase 1 (2026) … • Phase 2 (2027) … • Phase 3 (2028) …", "Aide : structurer par phases + jalons décisionnels (foncier/autorisation/budget).")}
       <div style="margin-top:10px"></div>
-      ${noteBlock("Commentaires", plan.com||'', "bureau.plan.com")}
+      ${noteBlockPH("Commentaires", plan.com||'', "bureau.plan.com", "Ex : dépendances, risques, conditions, points à arbitrer.")}
     </div>
   </div>
 </details>
@@ -2032,7 +2045,7 @@ audio{width:100%}
         ${fieldRow("Coût initial (€)", S.bureau?.cost_init_manual||'', "bureau.cost_init_manual")}
       </div>
       <hr class="sep">
-      ${noteBlock("Argumentaire", S.bureau?.arg||'', "bureau.arg")}
+      ${noteBlockPH("Argumentaire", S.bureau?.arg||'', "bureau.arg", "Ex : bénéfices, risques, conditions, coût, arbitrage proposé.", "Aide : synthèse décisionnelle en 5–10 lignes (GO/NO GO + conditions).")}
     </div>
   </div>
 </details>
@@ -2044,6 +2057,13 @@ const ORIGINAL = ${originalJson};
 let DATA = JSON.parse(JSON.stringify(ORIGINAL));
 const DOC_KEY = ${JSON.stringify(docKey)};
 let dirty = false;
+
+function refreshPlaceholders(){
+  document.querySelectorAll('.editable[data-placeholder]').forEach(el=>{
+    const t = (el.textContent||'').replace(/\u00A0/g,' ').trim();
+    el.classList.toggle('is-empty', t==='');
+  });
+}
 
 function persist(){
   dirty = true;
@@ -2361,6 +2381,7 @@ function applyToDom(data){
     el.textContent = (v==null ? '' : String(v));
   });
   renderAutoSummary();
+  refreshPlaceholders();
 }
 
 function gatherFromDom(){
@@ -2504,6 +2525,8 @@ function setEditMode(on){
     }
   });
 
+  refreshPlaceholders();
+
   if(!editOn){
     applyToDom(DATA);
   }
@@ -2524,6 +2547,7 @@ document.addEventListener('input', (e)=>{
   if(!e.target) return;
   const el = e.target.closest ? e.target.closest('[data-path]') : null;
   if(!el) return;
+  if(el.getAttribute && el.getAttribute('data-placeholder')) refreshPlaceholders();
   __scheduleLiveGather();
 });
 document.addEventListener('change', (e)=>{
@@ -2531,6 +2555,7 @@ document.addEventListener('change', (e)=>{
   if(!e.target) return;
   const el = e.target.closest ? e.target.closest('[data-path]') : null;
   if(!el) return;
+  if(el.getAttribute && el.getAttribute('data-placeholder')) refreshPlaceholders();
   __scheduleLiveGather();
 });
 function toast(msg){
